@@ -37,6 +37,7 @@ values.total; // number | null
 
 - [Why doc2json](#why-doc2json)
 - [Benchmark](#benchmark)
+- [Citations](#citations)
 - [Install](#install)
 - [Quick start](#quick-start)
 - [Inputs](#inputs)
@@ -77,12 +78,27 @@ We ran doc2json and a plain LLM prompt over **45 public documents with the same 
 
 The method, caveats and per-document CSV are on the [benchmark page](https://doc2json.manoonlabs.com/benchmark).
 
-<!--
-  Citations demo: uncomment once citations are live in production.
-  <p align="center">
-    <img src="assets/citations-demo.gif" alt="doc2json citations demo" width="100%">
-  </p>
--->
+## Citations
+
+Every extracted value links back to where it came from. Click a value to see its box on the document, or click a box to jump to the value.
+
+<p align="center">
+  <img src="assets/citations-demo.gif" alt="doc2json citations demo: clicking a value in the JSON highlights its box on the invoice" width="100%">
+</p>
+
+In the SDK, set `citations: true`:
+
+```ts
+const result = await doc2json.parse("invoice.pdf", { schema: Invoice, citations: true });
+
+result.citations?.["total"];
+// { page: 1, text: "Total 1,280.50", bbox: [0.62, 0.81, 0.91, 0.84], status: "verified", source: "text_layer" }
+```
+
+- **Keys:** one per value path, such as `total` or `lineItems[0].amount`.
+- **`page` and `text`:** the 1-based page and the printed text the value was read from. `page` is `null` for a text document.
+- **`bbox`:** `[x0, y0, x1, y1]` as fractions of the page from the top left, or `null` when there's no box.
+- **`status`:** `verified`, `fuzzy`, `mismatch`, `other_page` or `unverified`, from checking the text against the page.
 
 ## Install
 
@@ -365,6 +381,7 @@ await doc2json.parse("invoice.pdf", {
 | Option       | Type                                    | Description                                                                |
 | ------------ | --------------------------------------- | -------------------------------------------------------------------------- |
 | `schema`     | `string \| SchemaDefinition \| ZodType` | A saved schema name, an inline definition, or a [Zod schema](#zod-schemas) |
+| `citations`  | `boolean`                               | Also return where each value was read. See [Citations](#citations)         |
 | `export`     | `"xlsx" \| "csv"`                       | Also return a spreadsheet                                                  |
 | `filename`   | `string`                                | Document name. Defaults to the file's own name                             |
 | `signal`     | `AbortSignal`                           | Cancel the request                                                         |
@@ -375,13 +392,14 @@ await doc2json.parse("invoice.pdf", {
 
 **Result** (what `parse()` returns):
 
-| Field               | Description                                     |
-| ------------------- | ----------------------------------------------- |
-| `values`            | The extracted JSON, in the shape of your schema |
-| `validation`        | With a Zod schema only: the `safeParse` result  |
-| `export`            | The spreadsheet, when you set `export`          |
-| `credits_used`      | Credits for this parse                          |
-| `credits_remaining` | Credits left this month                         |
+| Field               | Description                                         |
+| ------------------- | --------------------------------------------------- |
+| `values`            | The extracted JSON, in the shape of your schema     |
+| `validation`        | With a Zod schema only: the `safeParse` result      |
+| `export`            | The spreadsheet, when you set `export`              |
+| `citations`         | Where each value was read, when you set `citations` |
+| `credits_used`      | Credits for this parse                              |
+| `credits_remaining` | Credits left this month                             |
 
 ## Runtime support
 
