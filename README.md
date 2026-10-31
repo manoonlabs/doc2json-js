@@ -58,7 +58,7 @@ values.total; // number | null
 - **It copes with messy input.** Rotated pages, phone photos, scanned receipts and multi-page PDFs. That's where a plain LLM prompt starts guessing.
 - **The schema drives the output.** You define the fields once, as a saved schema or inline. Every response matches that shape, and arrays are always arrays.
 - **Typed end to end.** Pass a Zod schema and `values` is typed from it, or use `parse<T>()` for `values: T`. Errors come back as classes you can `instanceof`.
-- **Zero runtime dependencies.** The only package it asks for is `zod` as a peer, for Zod schemas. It's built on native `fetch` and `FormData`, ships as ESM and CommonJS, and runs on Node 18+, Bun, Deno and in the browser.
+- **Zero runtime dependencies.** The only package it asks for is `zod` as a peer, for Zod schemas. It's built on native `fetch` and `FormData`, ships as ESM and CommonJS, and runs server-side on Node 18+, Bun and Deno.
 - **One API in three places.** Use it over REST (this SDK), as an MCP server for AI agents and editors, or in the web app.
 
 ## Benchmark
@@ -403,17 +403,14 @@ await doc2json.parse("invoice.pdf", {
 
 ## Runtime support
 
-| Runtime  | Supported                                             |
-| -------- | ----------------------------------------------------- |
-| Node.js  | 18 and later                                          |
-| Bun      | Yes                                                   |
-| Deno     | Yes, via `npm:@manoonlabs/doc2json`                   |
-| Browsers | Yes, with `Blob`, `File`, bytes, base64 or text input |
+| Runtime  | Supported                                               |
+| -------- | ------------------------------------------------------- |
+| Node.js  | 18 and later                                            |
+| Bun      | Yes                                                     |
+| Deno     | Yes, via `npm:@manoonlabs/doc2json`                     |
+| Browsers | Not supported, the API doesn't allow cross-origin calls |
 
-File paths are read with `node:fs`, which is only loaded when you pass a path, so browser bundles stay clean.
-
-> [!WARNING]
-> Don't ship a secret API key to untrusted browsers. Call doc2json from your server, or use a key you're happy to share.
+Call doc2json from your server, so your API key stays secret.
 
 ## MCP and the web app
 
