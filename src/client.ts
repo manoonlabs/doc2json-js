@@ -19,7 +19,10 @@ import type {
   SchemaSummary,
   UpdateSchemaParams,
   WhoAmI,
+  ZodParseOptions,
+  ZodParseResult,
 } from "./types";
+import { isZodSchema, resolveSchema, validateWithZod, type ZodSchemaLike } from "./zod";
 
 export const DEFAULT_BASE_URL = "https://doc2json.manoonlabs.com";
 /** The server stops a parse after 100 seconds, so wait a little longer. */
@@ -139,24 +142,36 @@ export class Doc2Json {
    * Extract structured JSON from a document.
    *
    * @param input A file path (Node, Bun, Deno), bytes, a Blob or File, `{ base64 }` or `{ text }`.
-   * @param options schema, citations, export, filename, signal.
+   * @param options schema, citations, export, filename, signal. With a Zod schema,
+   *   `values` is typed from it and the result has a `validation` field.
    */
+  async parse<S extends ZodSchemaLike>(
+    input: ParseInput,
+    options: ZodParseOptions<S>,
+  ): Promise<ZodParseResult<S>>;
   async parse<T = Record<string, unknown>>(
     input: ParseInput,
-    options: ParseOptions = {},
-  ): Promise<ParseResult<T>> {
-    const body = await buildParseBody(input, options);
+    options?: ParseOptions,
+  ): Promise<ParseResult<T>>;
+  async parse(input: ParseInput, options: ParseOptions = {}): Promise<ParseResult<unknown>> {
+    const zodSchema = isZodSchema(options.schema) ? options.schema : undefined;
+    const resolved =
+      options.schema === undefined
+        ? options
+        : { ...options, schema: await resolveSchema(options.schema) };
+    const body = await buildParseBody(input, resolved);
     const raw = (await this.request({
       method: "POST",
       path: "/api/v1/parse",
       body,
       options,
     })) as Record<string, unknown>;
-    const result = raw as unknown as ParseResult<T>;
+    const result = raw as unknown as ParseResult<unknown> & { validation?: unknown };
     const exported = raw.export as Omit<ExportFile, "data"> | undefined;
     if (exported && typeof exported.content === "string") {
       result.export = { ...exported, data: base64ToBytes(exported.content) };
     }
+    if (zodSchema) result.validation = await validateWithZod(zodSchema, result.values);
     return result;
   }
 
@@ -297,7 +312,10 @@ export class Schemas {
       await this.#client.request({
         method: "POST",
         path: "/api/v1/schemas",
-        body: { kind: "json", json: { name: params.name, schema: params.schema } },
+        body: {
+          kind: "json",
+          json: { name: params.name, schema: await resolveSchema(params.schema) },
+        },
         options: { maxRetries: 0, ...options },
       }),
     );
@@ -311,7 +329,7 @@ export class Schemas {
   ): Promise<SchemaRecord> {
     const json: Record<string, unknown> = {};
     if (params.newName !== undefined) json.newName = params.newName;
-    if (params.schema !== undefined) json.schema = params.schema;
+    if (params.schema !== undefined) json.schema = await resolveSchema(params.schema);
     return strip(
       await this.#client.request({
         method: "PATCH",

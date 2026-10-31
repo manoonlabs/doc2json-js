@@ -8,7 +8,7 @@
   <a href="./LICENSE"><img src="https://img.shields.io/badge/license-MIT-00865a.svg" alt="MIT license"></a>
   <img src="https://img.shields.io/badge/TypeScript-ready-3178c6.svg?logo=typescript&logoColor=white" alt="TypeScript">
   <img src="https://img.shields.io/badge/node-%3E%3D18-417e38.svg" alt="Node 18+">
-  <img src="https://img.shields.io/badge/dependencies-0-00865a.svg" alt="Zero dependencies">
+  <img src="https://img.shields.io/badge/dependencies-0-00865a.svg" alt="Zero runtime dependencies">
 </p>
 
 <p align="center">
@@ -52,8 +52,8 @@ const { values } = await doc2json.parse("invoice.pdf", { schema: "invoice" });
 
 - **It copes with messy input.** Rotated pages, phone photos, scanned receipts and multi-page PDFs. That's where a plain LLM prompt starts guessing.
 - **The schema drives the output.** You define the fields once, as a saved schema or inline. Every response matches that shape, and arrays are always arrays.
-- **Typed end to end.** `parse<T>()` gives you `values: T`, and errors come back as classes you can `instanceof`.
-- **No runtime dependencies.** It's built on native `fetch` and `FormData`, ships as ESM and CommonJS, and runs on Node 18+, Bun, Deno and in the browser.
+- **Typed end to end.** Pass a Zod schema and `values` is typed from it, or use `parse<T>()` for `values: T`. Errors come back as classes you can `instanceof`.
+- **Zero runtime dependencies.** The only package it asks for is `zod` as a peer, for Zod schemas. It's built on native `fetch` and `FormData`, ships as ESM and CommonJS, and runs on Node 18+, Bun, Deno and in the browser.
 - **One API in three places.** Use it over REST (this SDK), as an MCP server for AI agents and editors, or in the web app.
 
 ## Benchmark
@@ -103,6 +103,8 @@ bun add @manoonlabs/doc2json
 ```
 
 On Deno, import `npm:@manoonlabs/doc2json`.
+
+`zod` (version 4) is a peer dependency, used only when you pass a [Zod schema](#zod-schemas). npm 7 and later and pnpm install it for you. On Yarn, run `yarn add zod` if you want Zod schemas. Plain schemas work without it.
 
 ## Quick start
 
@@ -200,6 +202,36 @@ result.values.total; // number | null
 - **Hints:** add a `description` to any field to tell doc2json how to read it.
 - **Missing values:** a value that isn't on the document is `null`.
 - **Arrays:** an array field is always an array, and `[]` when there are no rows.
+
+### Zod schemas
+
+Already using [Zod](https://zod.dev)? Pass a Zod 4 schema and skip both the JSON and the generic. The SDK converts it for you, and `values` is typed with `z.infer`:
+
+```ts
+import { z } from "zod";
+
+const Invoice = z.object({
+  vendor: z.string().nullable(),
+  total: z.number().nullable(),
+  issued: z.iso.date().nullable(), // yyyy-mm-dd
+  lineItems: z.array(z.object({ description: z.string(), amount: z.number() })),
+});
+
+const result = await doc2json.parse("invoice.pdf", { schema: Invoice });
+
+result.values.total; // number | null
+result.validation.success; // true when values match Invoice
+```
+
+- **Install:** `zod` is a peer dependency. npm 7 and later install it with the SDK, so there's usually nothing to do. Plain JSON schemas still work with zero setup.
+- **Use `.nullable()`** on any field that might not be on the document. doc2json returns `null` for a missing value, and `.nullable()` keeps your types honest.
+- **Validation:** with a Zod schema, the result also has `validation`, which is `schema.safeParse(values)`. A mismatch never throws. Check `validation.success`, and read `validation.error.issues` for the details. `values` is always the JSON the API sent, so read `validation.data` if your schema uses transforms or `z.coerce`.
+- **Hints:** `.describe("...")` becomes the field `description`.
+- **Mapping:** `z.string()`, `z.number()` (and `.int()`), `z.boolean()` and `z.object()` map to the same doc2json types. `z.iso.date()` becomes `date`, sent back as a `yyyy-mm-dd` string. An enum becomes a `string` with the allowed values added to the hint, and a literal becomes its own type. `.optional()` drops the key from `required`. Shapes with no doc2json type, such as a union of two types, `z.record()` or `z.unknown()`, become `any`. Checks like `.min()` or `.regex()` aren't sent, but `validation` still applies them.
+- **Dates as `Date`:** `z.date()` also becomes `date`, but the API still sends a string. Use `z.coerce.date()` and read `validation.data` to get a `Date`.
+- **Saved schemas:** `schemas.create()` and `schemas.update()` take a Zod schema too.
+- **See the result:** `zodToSchema(Invoice)` returns the definition the SDK sends.
+- `zod/mini` schemas work too. Zod 3 schemas don't, so upgrade to `zod@4`.
 
 ### Saved schemas
 
@@ -330,14 +362,14 @@ await doc2json.parse("invoice.pdf", {
 
 **Per-call options** (`parse(input, options)`):
 
-| Option       | Type                         | Description                                    |
-| ------------ | ---------------------------- | ---------------------------------------------- |
-| `schema`     | `string \| SchemaDefinition` | A saved schema name, or an inline definition   |
-| `export`     | `"xlsx" \| "csv"`            | Also return a spreadsheet                      |
-| `filename`   | `string`                     | Document name. Defaults to the file's own name |
-| `signal`     | `AbortSignal`                | Cancel the request                             |
-| `timeout`    | `number`                     | Override the client timeout                    |
-| `maxRetries` | `number`                     | Override the client retry count                |
+| Option       | Type                                    | Description                                                                |
+| ------------ | --------------------------------------- | -------------------------------------------------------------------------- |
+| `schema`     | `string \| SchemaDefinition \| ZodType` | A saved schema name, an inline definition, or a [Zod schema](#zod-schemas) |
+| `export`     | `"xlsx" \| "csv"`                       | Also return a spreadsheet                                                  |
+| `filename`   | `string`                                | Document name. Defaults to the file's own name                             |
+| `signal`     | `AbortSignal`                           | Cancel the request                                                         |
+| `timeout`    | `number`                                | Override the client timeout                                                |
+| `maxRetries` | `number`                                | Override the client retry count                                            |
 
 `signal`, `timeout` and `maxRetries` also work on `whoami()` and every `schemas.*` method.
 

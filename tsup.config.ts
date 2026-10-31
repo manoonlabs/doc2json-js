@@ -9,4 +9,6 @@ export default defineConfig({
   target: "es2020",
   platform: "neutral",
   treeshake: true,
+  // zod is a peer dependency: always load the copy the app installed, never bundle it.
+  external: [/^zod(\/.*)?$/],
 });
