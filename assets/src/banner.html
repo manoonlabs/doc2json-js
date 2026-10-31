@@ -1,4 +1,4 @@
-<!doctype html><html><head><meta charset="utf-8"><style>
+<!doctype html><html lang="en"><head><meta charset="utf-8"><style>
 *{margin:0;padding:0;box-sizing:border-box}
 html,body{width:1280px;height:320px;overflow:hidden}
 body{font-family:Geist,sans-serif;background:#fff;position:relative;color:#0a0a0a}
@@ -14,7 +14,7 @@ body{font-family:Geist,sans-serif;background:#fff;position:relative;color:#0a0a0
 .tag{margin-top:26px;font-size:31px;line-height:1.2;font-weight:560;letter-spacing:-.02em}
 .tag b{color:#00865a;font-weight:600}
 .chips{margin-top:24px;display:flex;gap:10px}
-.chip{white-space:nowrap;font-family:'Geist Mono';font-size:15px;padding:6px 12px;border-radius:999px;border:1px solid #e5e5e5;background:#fff;color:#525252}
+.chip{white-space:nowrap;font-family:'Geist Mono',monospace;font-size:15px;padding:6px 12px;border-radius:999px;border:1px solid #e5e5e5;background:#fff;color:#525252}
 .chip.g{background:#e6f4ee;border-color:#b7e0cc;color:#007344}
 /* doc */
 .doc{position:absolute;left:720px;top:56px;width:170px;height:212px;background:#fbfaf6;border:1px solid #e0ddd3;border-radius:10px;transform:rotate(-7deg);box-shadow:0 10px 30px rgba(0,0,0,.08);padding:18px 16px}
@@ -28,19 +28,19 @@ body{font-family:Geist,sans-serif;background:#fff;position:relative;color:#0a0a0
 .code{position:absolute;left:968px;top:52px;width:256px;height:216px;background:#fafafa;border:1px solid #e5e5e5;border-radius:14px;box-shadow:0 10px 30px rgba(0,0,0,.06);overflow:hidden}
 .dots{display:flex;gap:6px;padding:12px 14px;border-bottom:1px solid #eee}
 .dots i{width:9px;height:9px;border-radius:50%;background:#e5e5e5;display:block}
-pre{font-family:'Geist Mono';font-size:14px;line-height:1.6;padding:10px 16px;color:#0a0a0a}
+pre{font-family:'Geist Mono',monospace;font-size:14px;line-height:1.6;padding:10px 16px;color:#0a0a0a}
 .k{color:#007344}.s{color:#9c3533}.n{color:#1d4ed8}.p{color:#a3a3a3}
 </style></head><body>
 <div class="bg"></div><div class="fade"></div><div class="frame"></div>
 <div class="left">
- <div class="brand"><svg viewBox="0 0 24 24"><rect width="24" height="24" rx="6" fill="#007344"/><g transform="translate(5 5) scale(0.5833)" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 10V8a2.4 2.4 0 0 0-.706-1.704l-3.588-3.588A2.4 2.4 0 0 0 14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h4.35"/><path d="M14 2v5a1 1 0 0 0 1 1h5"/><path d="M16 14a2 2 0 0 0-2 2"/><path d="M16 22a2 2 0 0 1-2-2"/><path d="M20 14a2 2 0 0 1 2 2"/><path d="M20 22a2 2 0 0 0 2-2"/></g></svg><span class="word">doc2json</span></div>
+ <div class="brand"><svg viewBox="0 0 24 24"><title>doc2json logo</title><rect width="24" height="24" rx="6" fill="#007344"/><g transform="translate(5 5) scale(0.5833)" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 10V8a2.4 2.4 0 0 0-.706-1.704l-3.588-3.588A2.4 2.4 0 0 0 14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h4.35"/><path d="M14 2v5a1 1 0 0 0 1 1h5"/><path d="M16 14a2 2 0 0 0-2 2"/><path d="M16 22a2 2 0 0 1-2-2"/><path d="M20 14a2 2 0 0 1 2 2"/><path d="M20 22a2 2 0 0 0 2-2"/></g></svg><span class="word">doc2json</span></div>
  <div class="tag">Turn PDFs, scans and photos<br>into <b>clean, typed JSON</b></div>
  <div class="chips"><span class="chip g">npm i @manoonlabs/doc2json</span><span class="chip">Node · Bun · Deno · browser</span></div>
 </div>
 <div class="doc"><div class="h"></div><div class="l" style="width:80%"></div><div class="l" style="width:50%;margin-bottom:16px"></div>
 <div class="row"><div class="l"></div><div class="l"></div></div><div class="row"><div class="l"></div><div class="l"></div></div><div class="row"><div class="l"></div><div class="l"></div></div>
 <div class="tot row"><div class="l" style="width:40%"></div><div class="l" style="width:28%"></div></div></div>
-<svg class="arrow" viewBox="0 0 56 24"><path d="M2 12h46M40 4l10 8-10 8" fill="none" stroke="#00865a" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg>
+<svg class="arrow" viewBox="0 0 56 24"><title>arrow</title><path d="M2 12h46M40 4l10 8-10 8" fill="none" stroke="#00865a" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg>
 <div class="code"><div class="dots"><i></i><i></i><i></i></div>
 <pre><span class="p">{</span>
   <span class="k">"vendor"</span>: <span class="s">"Northwind"</span>,

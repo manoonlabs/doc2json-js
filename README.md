@@ -64,12 +64,12 @@ We ran doc2json and a plain LLM prompt over **45 public documents with the same 
   <img src="assets/benchmark.png" alt="Fields extracted correctly. All fields: doc2json 98.7%, plain LLM prompt 69.7%. Rotated pages: 100% vs 39.3%. Phone photos: 96.2% vs 56.4%." width="100%">
 </p>
 
-| Fields extracted correctly | doc2json | Plain LLM prompt |
-| --- | ---: | ---: |
-| All fields | **98.7%** | 69.7% |
-| Rotated pages | **100%** | 39.3% |
-| Phone photos | **96.2%** | 56.4% |
-| Made-up values per 100 fields (all 50 docs) | **0.1** | 1.9 |
+| Fields extracted correctly                  |  doc2json | Plain LLM prompt |
+| ------------------------------------------- | --------: | ---------------: |
+| All fields                                  | **98.7%** |            69.7% |
+| Rotated pages                               |  **100%** |            39.3% |
+| Phone photos                                | **96.2%** |            56.4% |
+| Made-up values per 100 fields (all 50 docs) |   **0.1** |              1.9 |
 
 The method, caveats and per-document CSV are on the [benchmark page](https://doc2json.manoonlabs.com/benchmark).
 
@@ -227,13 +227,13 @@ result.values; // the JSON is always returned
 if (result.export) await writeFile(result.export.filename, result.export.data);
 ```
 
-| Field | What it is |
-| --- | --- |
-| `export.format` | `"xlsx"` or `"csv"` |
-| `export.filename` | A suggested name, `<name>-<yyyy-mm-dd>.<ext>` |
-| `export.data` | The decoded file as a `Uint8Array` |
-| `export.content` | The original base64 from the API |
-| `export.contentType` | The MIME type |
+| Field                | What it is                                    |
+| -------------------- | --------------------------------------------- |
+| `export.format`      | `"xlsx"` or `"csv"`                           |
+| `export.filename`    | A suggested name, `<name>-<yyyy-mm-dd>.<ext>` |
+| `export.data`        | The decoded file as a `Uint8Array`            |
+| `export.content`     | The original base64 from the API              |
+| `export.contentType` | The MIME type                                 |
 
 ## Credits and identity
 
@@ -271,27 +271,28 @@ try {
 } catch (error) {
   if (error instanceof ValidationError) console.error("Bad request:", error.message);
   else if (error instanceof AuthenticationError) console.error("Check your API key");
-  else if (error instanceof InsufficientCreditsError) console.error("Out of credits:", error.upgrade);
+  else if (error instanceof InsufficientCreditsError)
+    console.error("Out of credits:", error.upgrade);
   else if (error instanceof RateLimitError) console.error(`Retry in ${error.retryAfter}s`);
   else if (error instanceof Doc2JsonError) console.error(error.code, error.message);
   else throw error;
 }
 ```
 
-| Class | When |
-| --- | --- |
-| `ValidationError` | 400 or 422: bad input, an unknown schema, or too many pages. Has `pages` and `maxPages` when the document was over the limit. Nothing is spent. |
-| `AuthenticationError` | 401: the key is missing, unknown, revoked or expired. |
-| `InsufficientCreditsError` | 402: not enough credits. Has `creditsRequired` and `upgrade`. |
-| `PermissionDeniedError` | 403: parsing is paused for the workspace. |
-| `NotFoundError` | 404: the schema wasn't found. |
-| `ConflictError` | 409: the schema name is taken, or the schema limit is reached. |
-| `RateLimitError` | 429: you sent more than one parse per second per workspace. Has `retryAfter`. Nothing is spent. |
-| `InternalServerError` | 5xx: the parse failed or timed out. The charge is refunded. |
-| `APIError` | Any other error status. This is the base class of all the classes above. |
-| `APIConnectionError` | No response came back: a network, DNS or TLS failure. |
-| `APITimeoutError` | The request took longer than `timeout`. |
-| `APIUserAbortError` | You aborted the request with `signal`. |
+| Class                      | When                                                                                                                                            |
+| -------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------- |
+| `ValidationError`          | 400 or 422: bad input, an unknown schema, or too many pages. Has `pages` and `maxPages` when the document was over the limit. Nothing is spent. |
+| `AuthenticationError`      | 401: the key is missing, unknown, revoked or expired.                                                                                           |
+| `InsufficientCreditsError` | 402: not enough credits. Has `creditsRequired` and `upgrade`.                                                                                   |
+| `PermissionDeniedError`    | 403: parsing is paused for the workspace.                                                                                                       |
+| `NotFoundError`            | 404: the schema wasn't found.                                                                                                                   |
+| `ConflictError`            | 409: the schema name is taken, or the schema limit is reached.                                                                                  |
+| `RateLimitError`           | 429: you sent more than one parse per second per workspace. Has `retryAfter`. Nothing is spent.                                                 |
+| `InternalServerError`      | 5xx: the parse failed or timed out. The charge is refunded.                                                                                     |
+| `APIError`                 | Any other error status. This is the base class of all the classes above.                                                                        |
+| `APIConnectionError`       | No response came back: a network, DNS or TLS failure.                                                                                           |
+| `APITimeoutError`          | The request took longer than `timeout`.                                                                                                         |
+| `APIUserAbortError`        | You aborted the request with `signal`.                                                                                                          |
 
 API errors also carry `creditsUsed` and `creditsRemaining` when the server sends them.
 
@@ -319,34 +320,34 @@ await doc2json.parse("invoice.pdf", {
 
 **Client options** (`new Doc2Json(options)`):
 
-| Option | Default | Description |
-| --- | --- | --- |
-| `apiKey` | `process.env.DOC2JSON_API_KEY` | Your API key |
-| `baseUrl` | `https://doc2json.manoonlabs.com` | API origin |
-| `timeout` | `120000` | Milliseconds per attempt |
-| `maxRetries` | `2` | Retries on 408, 429, 5xx and network errors |
-| `fetch` | global `fetch` | A custom fetch, for proxies or tests |
+| Option       | Default                           | Description                                 |
+| ------------ | --------------------------------- | ------------------------------------------- |
+| `apiKey`     | `process.env.DOC2JSON_API_KEY`    | Your API key                                |
+| `baseUrl`    | `https://doc2json.manoonlabs.com` | API origin                                  |
+| `timeout`    | `120000`                          | Milliseconds per attempt                    |
+| `maxRetries` | `2`                               | Retries on 408, 429, 5xx and network errors |
+| `fetch`      | global `fetch`                    | A custom fetch, for proxies or tests        |
 
 **Per-call options** (`parse(input, options)`):
 
-| Option | Type | Description |
-| --- | --- | --- |
-| `schema` | `string \| SchemaDefinition` | A saved schema name, or an inline definition |
-| `export` | `"xlsx" \| "csv"` | Also return a spreadsheet |
-| `filename` | `string` | Document name. Defaults to the file's own name |
-| `signal` | `AbortSignal` | Cancel the request |
-| `timeout` | `number` | Override the client timeout |
-| `maxRetries` | `number` | Override the client retry count |
+| Option       | Type                         | Description                                    |
+| ------------ | ---------------------------- | ---------------------------------------------- |
+| `schema`     | `string \| SchemaDefinition` | A saved schema name, or an inline definition   |
+| `export`     | `"xlsx" \| "csv"`            | Also return a spreadsheet                      |
+| `filename`   | `string`                     | Document name. Defaults to the file's own name |
+| `signal`     | `AbortSignal`                | Cancel the request                             |
+| `timeout`    | `number`                     | Override the client timeout                    |
+| `maxRetries` | `number`                     | Override the client retry count                |
 
 `signal`, `timeout` and `maxRetries` also work on `whoami()` and every `schemas.*` method.
 
 ## Runtime support
 
-| Runtime | Supported |
-| --- | --- |
-| Node.js | 18 and later |
-| Bun | Yes |
-| Deno | Yes, via `npm:@manoonlabs/doc2json` |
+| Runtime  | Supported                                             |
+| -------- | ----------------------------------------------------- |
+| Node.js  | 18 and later                                          |
+| Bun      | Yes                                                   |
+| Deno     | Yes, via `npm:@manoonlabs/doc2json`                   |
 | Browsers | Yes, with `Blob`, `File`, bytes, base64 or text input |
 
 File paths are read with `node:fs`, which is only loaded when you pass a path, so browser bundles stay clean.
