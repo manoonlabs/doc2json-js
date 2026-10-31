@@ -1,0 +1,39 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><style>
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{width:1280px;height:400px;overflow:hidden}
+body{font-family:Geist,sans-serif;background:#fff;color:#0a0a0a;position:relative}
+.frame{position:absolute;inset:0;border:1px solid #e5e5e5;border-radius:20px;background:radial-gradient(ellipse 500px 300px at 1200px 0, rgba(0,134,90,.08), transparent 70%)}
+.wrap{position:absolute;left:56px;right:56px;top:44px}
+.top{display:flex;justify-content:space-between;align-items:flex-end}
+.eb{font-size:15px;font-weight:600;letter-spacing:.08em;color:#737373;text-transform:uppercase}
+h1{font-size:30px;font-weight:620;letter-spacing:-.02em;margin-top:8px}
+.legend{display:flex;gap:22px;font-size:16px;color:#525252;font-weight:500}
+.legend i{display:inline-block;width:12px;height:12px;border-radius:3px;margin-right:8px;vertical-align:-1px}
+.rows{margin-top:30px;display:flex;flex-direction:column;gap:22px}
+.row{display:grid;grid-template-columns:230px 1fr;align-items:center}
+.lab{font-size:19px;font-weight:560}
+.lab small{display:block;font-size:14px;color:#737373;font-weight:400;margin-top:2px}
+.bars{display:flex;flex-direction:column;gap:6px}
+.b{display:flex;align-items:center;gap:12px;font-family:'Geist Mono',monospace;font-size:16px}
+.bar{height:16px;border-radius:8px}
+.d{background:#00865a}.p{background:#d4d4d4}
+.v{min-width:64px}.vd{color:#007344;font-weight:600}.vp{color:#737373}
+.foot{position:absolute;left:56px;right:56px;bottom:28px;display:flex;justify-content:space-between;font-size:15px;color:#737373}
+.pill{font-family:'Geist Mono',monospace;font-size:15px;padding:5px 12px;border-radius:999px;background:#e6f4ee;border:1px solid #b7e0cc;color:#007344}
+</style></head><body><div class="frame"></div>
+<div class="wrap">
+<div class="top"><div><div class="eb">Benchmark · 45 public documents · same schema</div><h1>Fields extracted correctly</h1></div>
+<div class="legend"><span><i class="d"></i>doc2json</span><span><i class="p"></i>plain LLM prompt</span></div></div>
+<div class="rows">
+<div class="row"><div class="lab">All fields<small>receipts, invoices, statements</small></div><div class="bars">
+<div class="b"><div class="bar d" style="width:calc(0.987*840px)"></div><span class="v vd">98.7%</span></div>
+<div class="b"><div class="bar p" style="width:calc(0.697*840px)"></div><span class="v vp">69.7%</span></div></div></div>
+<div class="row"><div class="lab">Rotated pages</div><div class="bars">
+<div class="b"><div class="bar d" style="width:840px"></div><span class="v vd">100%</span></div>
+<div class="b"><div class="bar p" style="width:calc(0.393*840px)"></div><span class="v vp">39.3%</span></div></div></div>
+<div class="row"><div class="lab">Phone photos</div><div class="bars">
+<div class="b"><div class="bar d" style="width:calc(0.962*840px)"></div><span class="v vd">96.2%</span></div>
+<div class="b"><div class="bar p" style="width:calc(0.564*840px)"></div><span class="v vp">56.4%</span></div></div></div>
+</div></div>
+<div class="foot"><span>doc2json.manoonlabs.com/benchmark</span><span class="pill">Made-up values per 100 fields: 0.1 vs 1.9 (all 50 docs)</span></div>
+</body></html>
