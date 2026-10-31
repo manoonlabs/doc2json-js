@@ -40,7 +40,6 @@ try {
 
   console.log(result.values);
   console.log("total was read from:", result.citations?.total);
-  console.log(`credits used: ${result.credits_used}, left: ${result.credits_remaining}`);
 } catch (error) {
   if (error instanceof Doc2JsonError) {
     console.error(`${error.name} (${error.status ?? "no response"}): ${error.message}`);
