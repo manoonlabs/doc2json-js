@@ -23,3 +23,12 @@ export {
 } from "./errors";
 export type * from "./types";
 export { VERSION } from "./version";
+export {
+  type InferZod,
+  isZodSchema,
+  jsonSchemaToDefinition,
+  type ZodIssueLike,
+  type ZodSchemaLike,
+  type ZodValidation,
+  zodToSchema,
+} from "./zod";

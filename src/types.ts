@@ -1,3 +1,5 @@
+import type { InferZod, ZodSchemaLike, ZodValidation } from "./zod";
+
 /** A field in a schema definition. */
 export type SchemaFieldType = "any" | "null" | "boolean" | "string" | "number" | "date";
 
@@ -106,8 +108,11 @@ export type RequestOptions = {
 };
 
 export type ParseOptions = RequestOptions & {
-  /** The name of a saved schema, or a definition used for this call only. */
-  schema?: string | SchemaDefinition;
+  /**
+   * The name of a saved schema, a definition used for this call only, or a
+   * Zod 4 schema (converted for you, and `values` is typed from it).
+   */
+  schema?: string | SchemaDefinition | ZodSchemaLike;
   /** Ask where each value was read: page, text and bounding box. */
   citations?: boolean;
   /** Also return the result as an Excel or CSV file. */
@@ -133,6 +138,15 @@ export type SchemaSummary = {
 
 export type SchemaRecord = SchemaSummary & { schema: SchemaDefinition };
 
-export type CreateSchemaParams = { name: string; schema: SchemaDefinition };
+export type CreateSchemaParams = { name: string; schema: SchemaDefinition | ZodSchemaLike };
 
-export type UpdateSchemaParams = { newName?: string; schema?: SchemaDefinition };
+export type UpdateSchemaParams = { newName?: string; schema?: SchemaDefinition | ZodSchemaLike };
+
+/** Parse options with a Zod schema. */
+export type ZodParseOptions<S extends ZodSchemaLike> = Omit<ParseOptions, "schema"> & { schema: S };
+
+/** A parse with a Zod schema: `values` is typed as `z.infer<S>`, plus a `validation` result. */
+export type ZodParseResult<S extends ZodSchemaLike> = ParseResult<InferZod<S>> & {
+  /** `schema.safeParse(values)`. A mismatch is reported here, never thrown. */
+  validation: ZodValidation<InferZod<S>>;
+};
