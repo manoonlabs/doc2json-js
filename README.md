@@ -23,22 +23,26 @@ The official JavaScript and TypeScript SDK for [doc2json](https://doc2json.manoo
 
 ```ts
 import { Doc2Json } from "@manoonlabs/doc2json";
+import { z } from "zod";
 
 const doc2json = new Doc2Json(); // reads DOC2JSON_API_KEY
-const { values } = await doc2json.parse("invoice.pdf", { schema: "invoice" });
+
+const Invoice = z.object({ vendor: z.string().nullable(), total: z.number().nullable() });
+
+const { values } = await doc2json.parse("invoice.pdf", { schema: Invoice });
+values.total; // number | null
 ```
 
 ## Contents
 
 - [Why doc2json](#why-doc2json)
 - [Benchmark](#benchmark)
-- [How it works](#how-it-works)
 - [Install](#install)
 - [Quick start](#quick-start)
 - [Inputs](#inputs)
 - [Schemas](#schemas)
 - [Excel and CSV export](#excel-and-csv-export)
-- [Credits and identity](#credits-and-identity)
+- [Checking your key](#checking-your-key)
 - [Error handling](#error-handling)
 - [Retries, timeouts and cancellation](#retries-timeouts-and-cancellation)
 - [Options](#options)
@@ -80,18 +84,6 @@ The method, caveats and per-document CSV are on the [benchmark page](https://doc
   </p>
 -->
 
-## How it works
-
-```mermaid
-flowchart LR
-    A["Your app"] -->|"parse(file, { schema })"| B["@manoonlabs/doc2json"]
-    B -->|"POST /api/v1/parse<br/>multipart or JSON, with retries"| C["doc2json API"]
-    C -->|"values matching your schema"| B
-    B -->|"typed ParseResult"| A
-```
-
-The SDK turns your input into the right request body. Files, bytes and paths are sent as `multipart/form-data`; base64 and text are sent as JSON. It adds your key, retries transient failures and returns typed results. The file isn't stored. The bytes are dropped after the request.
-
 ## Install
 
 ```sh
@@ -119,14 +111,21 @@ On Deno, import `npm:@manoonlabs/doc2json`.
 
    ```ts
    import { Doc2Json } from "@manoonlabs/doc2json";
+   import { z } from "zod";
 
    const doc2json = new Doc2Json({ apiKey: process.env.DOC2JSON_API_KEY });
 
-   const result = await doc2json.parse("invoice.pdf", { schema: "invoice" });
+   const Invoice = z.object({
+     vendor: z.string().nullable(),
+     total: z.number().nullable(),
+   });
 
-   console.log(result.values); // the extracted JSON
-   console.log(result.credits_used, result.credits_remaining);
+   const result = await doc2json.parse("invoice.pdf", { schema: Invoice });
+
+   console.log(result.values); // { vendor: "Northwind Supply", total: 1280.5 }
    ```
+
+Not using Zod? Pass a plain JSON schema or a saved schema name instead. See [Without Zod](#without-zod).
 
 If you leave out `apiKey`, the client reads `DOC2JSON_API_KEY` from the environment. If there's no key at all, the constructor throws a `Doc2JsonError` with code `missing_api_key`.
 
@@ -161,7 +160,41 @@ await doc2json.parse({ text: "Invoice INV-1042 from Northwind Supply. Total 1280
 
 ## Schemas
 
-Without a schema, doc2json chooses the fields. To control the output, pass the name of a schema saved in your workspace, or a definition for this call only:
+Without a schema, doc2json chooses the fields. To control the output, pass a [Zod](https://zod.dev) schema, a plain JSON schema, or the name of a schema saved in your workspace.
+
+### Zod schemas
+
+Pass a Zod 4 schema and `values` is typed with `z.infer`. There's no JSON to write and no generic to add. The SDK converts the schema for you:
+
+```ts
+import { z } from "zod";
+
+const Invoice = z.object({
+  vendor: z.string().nullable(),
+  total: z.number().nullable(),
+  issued: z.iso.date().nullable(), // yyyy-mm-dd
+  lineItems: z.array(z.object({ description: z.string(), amount: z.number() })),
+});
+
+const result = await doc2json.parse("invoice.pdf", { schema: Invoice });
+
+result.values.total; // number | null
+result.validation.success; // true when values match Invoice
+```
+
+- **Use `.nullable()`** on any field that might not be on the document. doc2json returns `null` for a missing value, and `.nullable()` keeps your types honest.
+- **Hints:** `.describe("...")` tells doc2json how to read a field.
+- **Arrays:** an array field is always an array, and `[]` when there are no rows.
+- **Validation:** the result also has `validation`, which is `schema.safeParse(values)`. A mismatch never throws. Check `validation.success`, and read `validation.error.issues` for the details. `values` is always the JSON the API sent, so read `validation.data` if your schema uses transforms or `z.coerce`.
+- **Install:** `zod` is a peer dependency. npm 7 and later install it with the SDK, so there's usually nothing to do.
+- **Mapping:** `z.string()`, `z.number()` (and `.int()`), `z.boolean()` and `z.object()` map to the same doc2json types. `z.iso.date()` becomes `date`, sent back as a `yyyy-mm-dd` string. An enum becomes a `string` with the allowed values added to the hint, and a literal becomes its own type. `.optional()` drops the key from `required`. Shapes with no doc2json type, such as a union of two types, `z.record()` or `z.unknown()`, become `any`. Checks like `.min()` or `.regex()` aren't sent, but `validation` still applies them.
+- **Dates as `Date`:** `z.date()` also becomes `date`, but the API still sends a string. Use `z.coerce.date()` and read `validation.data` to get a `Date`.
+- **See the result:** `zodToSchema(Invoice)` returns the definition the SDK sends.
+- `zod/mini` schemas work too. Zod 3 schemas don't, so upgrade to `zod@4`.
+
+### Without Zod
+
+Pass the definition as a plain JSON schema object, and add the type yourself with `parse<T>()`:
 
 ```ts
 type Invoice = {
@@ -202,46 +235,17 @@ result.values.total; // number | null
 - **Hints:** add a `description` to any field to tell doc2json how to read it.
 - **Missing values:** a value that isn't on the document is `null`.
 - **Arrays:** an array field is always an array, and `[]` when there are no rows.
-
-### Zod schemas
-
-Already using [Zod](https://zod.dev)? Pass a Zod 4 schema and skip both the JSON and the generic. The SDK converts it for you, and `values` is typed with `z.infer`:
-
-```ts
-import { z } from "zod";
-
-const Invoice = z.object({
-  vendor: z.string().nullable(),
-  total: z.number().nullable(),
-  issued: z.iso.date().nullable(), // yyyy-mm-dd
-  lineItems: z.array(z.object({ description: z.string(), amount: z.number() })),
-});
-
-const result = await doc2json.parse("invoice.pdf", { schema: Invoice });
-
-result.values.total; // number | null
-result.validation.success; // true when values match Invoice
-```
-
-- **Install:** `zod` is a peer dependency. npm 7 and later install it with the SDK, so there's usually nothing to do. Plain JSON schemas still work with zero setup.
-- **Use `.nullable()`** on any field that might not be on the document. doc2json returns `null` for a missing value, and `.nullable()` keeps your types honest.
-- **Validation:** with a Zod schema, the result also has `validation`, which is `schema.safeParse(values)`. A mismatch never throws. Check `validation.success`, and read `validation.error.issues` for the details. `values` is always the JSON the API sent, so read `validation.data` if your schema uses transforms or `z.coerce`.
-- **Hints:** `.describe("...")` becomes the field `description`.
-- **Mapping:** `z.string()`, `z.number()` (and `.int()`), `z.boolean()` and `z.object()` map to the same doc2json types. `z.iso.date()` becomes `date`, sent back as a `yyyy-mm-dd` string. An enum becomes a `string` with the allowed values added to the hint, and a literal becomes its own type. `.optional()` drops the key from `required`. Shapes with no doc2json type, such as a union of two types, `z.record()` or `z.unknown()`, become `any`. Checks like `.min()` or `.regex()` aren't sent, but `validation` still applies them.
-- **Dates as `Date`:** `z.date()` also becomes `date`, but the API still sends a string. Use `z.coerce.date()` and read `validation.data` to get a `Date`.
-- **Saved schemas:** `schemas.create()` and `schemas.update()` take a Zod schema too.
-- **See the result:** `zodToSchema(Invoice)` returns the definition the SDK sends.
-- `zod/mini` schemas work too. Zod 3 schemas don't, so upgrade to `zod@4`.
+- **No setup:** plain schemas work without `zod` installed.
 
 ### Saved schemas
 
 Save a schema once and refer to it by name from every app, key and MCP client in the workspace:
 
 ```ts
-await doc2json.schemas.create({ name: "invoice", schema });
+await doc2json.schemas.create({ name: "invoice", schema: Invoice }); // Zod or plain JSON
 await doc2json.schemas.list(); // [{ id, name, keyCount, createdAt, updatedAt }]
 await doc2json.schemas.get("invoice"); // also includes .schema, the definition
-await doc2json.schemas.update("invoice", { newName: "invoice-v2", schema });
+await doc2json.schemas.update("invoice", { newName: "invoice-v2", schema: Invoice });
 ```
 
 You can also build schemas visually in the [schema editor](https://doc2json.manoonlabs.com/schemas).
@@ -267,17 +271,13 @@ if (result.export) await writeFile(result.export.filename, result.export.data);
 | `export.content`     | The original base64 from the API              |
 | `export.contentType` | The MIME type                                 |
 
-## Credits and identity
+## Checking your key
 
 ```ts
-const result = await doc2json.parse("invoice.pdf");
-result.credits_used; // 1
-result.credits_remaining; // 49
-
 await doc2json.whoami(); // { workspaceId, tokenId, credits_remaining }
 ```
 
-`whoami()` confirms that a key works and shows the credits left this month. It doesn't spend anything.
+`whoami()` confirms that a key works. It doesn't spend anything.
 
 ## Error handling
 
@@ -373,6 +373,16 @@ await doc2json.parse("invoice.pdf", {
 
 `signal`, `timeout` and `maxRetries` also work on `whoami()` and every `schemas.*` method.
 
+**Result** (what `parse()` returns):
+
+| Field               | Description                                     |
+| ------------------- | ----------------------------------------------- |
+| `values`            | The extracted JSON, in the shape of your schema |
+| `validation`        | With a Zod schema only: the `safeParse` result  |
+| `export`            | The spreadsheet, when you set `export`          |
+| `credits_used`      | Credits for this parse                          |
+| `credits_remaining` | Credits left this month                         |
+
 ## Runtime support
 
 | Runtime  | Supported                                             |
@@ -408,7 +418,7 @@ npm run typecheck
 npm run lint       # biome
 ```
 
-The main example is [`examples/basic.ts`](./examples/basic.ts). Changes are listed in [CHANGELOG.md](./CHANGELOG.md), and you can report a security issue through [SECURITY.md](./SECURITY.md). Bugs and feature requests go to [GitHub Issues](https://github.com/manoonlabs/doc2json-js/issues).
+The examples are [`examples/zod.ts`](./examples/zod.ts) and, without Zod, [`examples/basic.ts`](./examples/basic.ts). Changes are listed in [CHANGELOG.md](./CHANGELOG.md), and you can report a security issue through [SECURITY.md](./SECURITY.md). Bugs and feature requests go to [GitHub Issues](https://github.com/manoonlabs/doc2json-js/issues).
 
 ## License
 
