@@ -1,0 +1,38 @@
+---
+description: Keep SDK behavior aligned with the doc2json REST API (reboot)
+globs: src/**,test/**
+alwaysApply: false
+---
+
+# API parity with doc2json
+
+The live API lives in the **doc2json** monorepo (`webapp/src/lib/parse/`). This SDK is a thin client; when the API changes, update the SDK and tests together.
+
+## Saved layouts (schemas)
+
+- REST paths are still **`/api/v1/schemas`** and **`/api/v1/schemas/{slug}`**. The console calls them layouts; the JSON field is still `schema`.
+- Path parameter is a **slug** (`a-z0-9_`), not a raw display name with spaces. Hyphens in input normalize to underscores (`bank-statement` → `bank_statement`).
+- **`PATCH`** rename uses body field **`name`** (display name), not `newName`. The SDK may accept deprecated `newName` and map it to `name` for callers.
+
+## Slug helpers
+
+[`src/schema-slug.ts`](../src/schema-slug.ts) should stay in sync with the server’s:
+
+- `normalizeSchemaSlug`
+- `schemaSlugFromDisplayName`
+- `normalizeSchemaDisplayName` (as needed for display → slug)
+
+Source of truth: `doc2json` → `webapp/src/lib/parse/schema-definition.ts`.
+
+Use `resolveSchemaSlug()` for:
+
+- string `schema` on `parse()` (multipart and JSON),
+- `schemas.get()` and `schemas.update()` path segments.
+
+Do not URL-encode display names with spaces and expect the API to accept them.
+
+## When the API changes
+
+1. Read the matching route/operation in doc2json (`operations.ts`, `parse-request.ts`).
+2. Adjust `client.ts`, `input.ts`, and types once.
+3. Add or update a Vitest that names the invariant (see **testing** rule).

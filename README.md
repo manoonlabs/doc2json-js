@@ -9,6 +9,7 @@
   <img src="https://img.shields.io/badge/TypeScript-ready-3178c6.svg?logo=typescript&logoColor=white" alt="TypeScript">
   <img src="https://img.shields.io/badge/node-%3E%3D18-417e38.svg" alt="Node 18+">
   <img src="https://img.shields.io/badge/dependencies-0-00865a.svg" alt="Zero runtime dependencies">
+  <a href="https://mcptry.com/servers/com.manoonlabs/doc2json"><img src="https://mcptry.com/badge/com.manoonlabs/doc2json" alt="mcptry"></a>
 </p>
 
 <p align="center">
@@ -432,6 +433,16 @@ npm test           # vitest
 npm run typecheck
 npm run lint       # biome
 ```
+
+### Release to npm
+
+Publishing uses npm **Trusted Publishing** from GitHub Actions. Merging to `main` runs CI only; npm updates when you push a **version tag**:
+
+1. Bump `version` in `package.json`, `VERSION` in `src/version.ts`, and `CHANGELOG.md`.
+2. Merge to `main`.
+3. `git tag vX.Y.Z && git push origin vX.Y.Z` (the tag without `v` must match `package.json`).
+
+See `.github/workflows/publish.yml`. Cursor agents follow `.cursor/rules/release.mdc` for the full checklist.
 
 The examples are [`examples/zod.ts`](./examples/zod.ts) and, without Zod, [`examples/basic.ts`](./examples/basic.ts). Changes are listed in [CHANGELOG.md](./CHANGELOG.md), and you can report a security issue through [SECURITY.md](./SECURITY.md). Bugs and feature requests go to [GitHub Issues](https://github.com/manoonlabs/doc2json-js/issues).
 

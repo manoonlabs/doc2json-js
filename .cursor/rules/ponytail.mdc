@@ -1,0 +1,25 @@
+---
+description: Minimal diff, npm checks before handoff
+alwaysApply: true
+---
+
+# Ponytail (doc2json-js)
+
+Prefer the smallest change that fully fixes the task. Reuse patterns in `src/` and match existing test style (Vitest).
+
+## Before you finish
+
+When code in this repo changed and the task is done, run from the repo root before commit, push, or handoff:
+
+1. `npm run lint`
+2. `npm run typecheck`
+3. `npm test`
+4. `npm run build` when `src/` or the build config changed
+
+Fix anything they report. Do not claim the work is finished without a green run unless the user asked to skip checks or a check is impossible here (say which and why).
+
+## SDK-specific scope
+
+- Zero runtime dependencies; `zod` is a peer for Zod schemas only.
+- Server-side only (native `fetch` / `FormData`). Do not add browser or CORS workarounds.
+- Keep ESM + CJS exports via `tsup`; do not add a second build pipeline without being asked.
