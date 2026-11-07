@@ -1,0 +1,35 @@
+---
+description: npm releases and Trusted Publisher; tag-based publish workflow
+alwaysApply: true
+---
+
+# Release and npm publish
+
+Merging to `main` does **not** publish to npm. Only the **Publish** workflow runs, and only on a **version tag** push.
+
+## How publish works
+
+- Workflow: [`.github/workflows/publish.yml`](../.github/workflows/publish.yml)
+- Trigger: `push` of tags matching `v*` (e.g. `v0.1.2`), not pushes to `main`
+- Auth: npm **Trusted Publishing** (OIDC). `permissions.id-token: write` is required. There is no `NPM_TOKEN`.
+- Command: `npm publish --provenance --access public`
+- CI on `main` / PRs: [`.github/workflows/ci.yml`](../.github/workflows/ci.yml) — tests only
+
+Do not replace the tag-based workflow with “publish on every push to `main`” unless the user explicitly asks. Tag releases keep npm in sync with intentional versions.
+
+## Release checklist
+
+1. Bump **`package.json`** `version`, **`src/version.ts`** (`VERSION`), and add a **`CHANGELOG.md`** section.
+2. Merge to `main` (CI must pass).
+3. Tag on the release commit; tag name (without `v`) must equal `package.json` version:
+   ```sh
+   git tag v0.1.3
+   git push origin v0.1.3
+   ```
+4. Confirm the **Publish** workflow succeeded on GitHub Actions. npm may show “processing” for a few minutes after the first trusted publish.
+
+If someone only merged without tagging, remind them to push the matching `v*` tag — that is why npm did not update.
+
+## Version collisions
+
+npm rejects a version that already exists. Always bump before tagging. `0.1.1` was tagged in git but never published after a failed pre–Trusted Publisher run; the next public release used a new version.

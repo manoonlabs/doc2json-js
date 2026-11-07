@@ -1,0 +1,27 @@
+---
+description: Vitest naming and release of tests with behavior changes
+globs: test/**
+alwaysApply: false
+---
+
+# Tests
+
+Test names are the spec: reading `test/` should list every rule the SDK enforces.
+
+## With the change
+
+Land behavior and the test that proves it in the same diff. A behavior change without a test is unfinished unless the change is trivial (typo, comment, version bump only).
+
+## Names
+
+- Full sentence, lowercase, no “should”.
+- One invariant per `it()` (this repo uses `describe` groups in places; new tests can use top-level `it()` when the file is already flat).
+
+## What to test
+
+- HTTP shape: URL path, method, JSON body, multipart fields — use the existing `mockClient` helpers in `test/helpers.ts`.
+- Slug and rename behavior belongs in `test/schema-slug.test.ts` or endpoint tests in `test/parse.test.ts`, not duplicated across files.
+
+## Before claiming API compatibility
+
+If the task is “match doc2json reboot”, grep doc2json for the operation and add a test that would have failed on the old SDK behavior.
