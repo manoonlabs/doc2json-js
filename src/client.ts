@@ -8,6 +8,7 @@ import {
   retryAfterSeconds,
 } from "./errors";
 import { buildParseBody, type ParseBody } from "./input";
+import { resolveSchemaSlug } from "./schema-slug";
 import type {
   CreateSchemaParams,
   ExportFile,
@@ -296,10 +297,11 @@ export class Schemas {
 
   /** Read one saved schema, including its definition. */
   async get(name: string, options: RequestOptions = {}): Promise<SchemaRecord> {
+    const slug = resolveSchemaSlug(name);
     return strip(
       await this.#client.request({
         method: "GET",
-        path: `/api/v1/schemas/${encodeURIComponent(name)}`,
+        path: `/api/v1/schemas/${encodeURIComponent(slug)}`,
         body: { kind: "none" },
         options,
       }),
@@ -327,13 +329,15 @@ export class Schemas {
     params: UpdateSchemaParams,
     options: RequestOptions = {},
   ): Promise<SchemaRecord> {
+    const slug = resolveSchemaSlug(name);
     const json: Record<string, unknown> = {};
-    if (params.newName !== undefined) json.newName = params.newName;
+    const rename = params.name ?? params.newName;
+    if (rename !== undefined) json.name = rename;
     if (params.schema !== undefined) json.schema = await resolveSchema(params.schema);
     return strip(
       await this.#client.request({
         method: "PATCH",
-        path: `/api/v1/schemas/${encodeURIComponent(name)}`,
+        path: `/api/v1/schemas/${encodeURIComponent(slug)}`,
         body: { kind: "json", json },
         options,
       }),

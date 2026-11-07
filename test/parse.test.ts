@@ -229,7 +229,7 @@ describe("other endpoints", () => {
     expect(await client.schemas.list()).toEqual([item]);
   });
 
-  it("schemas.get encodes the name", async () => {
+  it("schemas.get resolves a display name to the API slug", async () => {
     const record = {
       status: "ok",
       id: "s",
@@ -241,7 +241,7 @@ describe("other endpoints", () => {
     };
     const { client, calls } = mockClient([jsonResponse(record)]);
     const got = await client.schemas.get("my schema");
-    expect(calls[0]?.url).toMatch(/\/api\/v1\/schemas\/my%20schema$/);
+    expect(calls[0]?.url).toMatch(/\/api\/v1\/schemas\/my_schema$/);
     expect(got).not.toHaveProperty("status");
     expect(got.name).toBe("my schema");
   });
@@ -258,10 +258,32 @@ describe("other endpoints", () => {
     };
     const { client, calls } = mockClient([jsonResponse(record, 201), jsonResponse(record)]);
     await client.schemas.create({ name: "invoice", schema: record.schema as never });
-    await client.schemas.update("invoice", { newName: "bill" });
+    await client.schemas.update("invoice", { name: "bill" });
     expect(calls[0]?.init.method).toBe("POST");
     expect(jsonBody(calls[0])).toEqual({ name: "invoice", schema: record.schema });
     expect(calls[1]?.init.method).toBe("PATCH");
-    expect(jsonBody(calls[1])).toEqual({ newName: "bill" });
+    expect(jsonBody(calls[1])).toEqual({ name: "bill" });
+  });
+
+  it("a saved schema reference in parse uses the API slug", async () => {
+    const { client, calls } = mockClient([jsonResponse(OK)]);
+    await client.parse({ text: "x" }, { schema: "Bank Statement" });
+    expect(jsonBody(calls[0]).schema).toBe("bank_statement");
+  });
+
+  it("schemas.update still accepts newName as a deprecated alias", async () => {
+    const record = {
+      status: "ok",
+      id: "s",
+      name: "bill",
+      keyCount: 1,
+      createdAt: "a",
+      updatedAt: "b",
+      schema: { type: "object", properties: {} },
+    };
+    const { client, calls } = mockClient([jsonResponse(record)]);
+    await client.schemas.update("bank-statement", { newName: "Bill" });
+    expect(calls[0]?.url).toMatch(/\/api\/v1\/schemas\/bank_statement$/);
+    expect(jsonBody(calls[0])).toEqual({ name: "Bill" });
   });
 });

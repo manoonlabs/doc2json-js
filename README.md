@@ -261,7 +261,7 @@ Save a schema once and refer to it by name from every app, key and MCP client in
 await doc2json.schemas.create({ name: "invoice", schema: Invoice }); // Zod or plain JSON
 await doc2json.schemas.list(); // [{ id, name, keyCount, createdAt, updatedAt }]
 await doc2json.schemas.get("invoice"); // also includes .schema, the definition
-await doc2json.schemas.update("invoice", { newName: "invoice-v2", schema: Invoice });
+await doc2json.schemas.update("invoice", { name: "Invoice v2", schema: Invoice });
 ```
 
 You can also build schemas visually in the [schema editor](https://doc2json.manoonlabs.com/schemas).

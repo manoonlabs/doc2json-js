@@ -140,7 +140,13 @@ export type SchemaRecord = SchemaSummary & { schema: SchemaDefinition };
 
 export type CreateSchemaParams = { name: string; schema: SchemaDefinition | ZodSchemaLike };
 
-export type UpdateSchemaParams = { newName?: string; schema?: SchemaDefinition | ZodSchemaLike };
+export type UpdateSchemaParams = {
+  /** New display name for the saved schema. */
+  name?: string;
+  /** @deprecated Use `name`. */
+  newName?: string;
+  schema?: SchemaDefinition | ZodSchemaLike;
+};
 
 /** Parse options with a Zod schema. */
 export type ZodParseOptions<S extends ZodSchemaLike> = Omit<ParseOptions, "schema"> & { schema: S };

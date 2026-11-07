@@ -1,4 +1,5 @@
 import { Doc2JsonError } from "./errors";
+import { resolveSchemaSlug } from "./schema-slug";
 import type { ParseInput, ParseOptions } from "./types";
 
 /** The body of one POST /api/v1/parse, ready to send (and resend on retry). */
@@ -48,9 +49,16 @@ async function readPath(path: string): Promise<Uint8Array> {
   }
 }
 
+function schemaField(schema: ParseOptions["schema"]): unknown {
+  if (schema === undefined) return undefined;
+  if (typeof schema === "string") return resolveSchemaSlug(schema);
+  return schema;
+}
+
 function sharedFields(options: ParseOptions): Record<string, unknown> {
   const fields: Record<string, unknown> = {};
-  if (options.schema !== undefined) fields.schema = options.schema;
+  const schema = schemaField(options.schema);
+  if (schema !== undefined) fields.schema = schema;
   if (options.citations !== undefined) fields.citations = options.citations;
   if (options.export !== undefined) fields.export = options.export;
   if (options.filename !== undefined) fields.filename = options.filename;
@@ -61,7 +69,9 @@ function multipart(blob: Blob, name: string | undefined, options: ParseOptions):
   const fields: Record<string, string> = {};
   if (options.schema !== undefined) {
     fields.schema =
-      typeof options.schema === "string" ? options.schema : JSON.stringify(options.schema);
+      typeof options.schema === "string"
+        ? resolveSchemaSlug(options.schema)
+        : JSON.stringify(options.schema);
   }
   if (options.citations !== undefined) fields.citations = options.citations ? "true" : "false";
   if (options.export !== undefined) fields.export = options.export;

@@ -2,6 +2,11 @@
 
 All notable changes to `@manoonlabs/doc2json` are listed here. This project follows [Semantic Versioning](https://semver.org).
 
+## 0.1.2
+
+- Saved layouts are addressed by slug on the API. The SDK normalizes slugs (`bank-statement` → `bank_statement`) and derives a slug from a display name for `parse`, `schemas.get()`, and `schemas.update()`.
+- `schemas.update()` sends `name` for renames (matching the API). `newName` still works but is deprecated.
+
 ## 0.1.0
 
 First release.
