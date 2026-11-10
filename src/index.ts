@@ -4,6 +4,7 @@ export {
   DEFAULT_TIMEOUT_MS,
   Doc2Json,
   type Doc2JsonOptions,
+  Jobs,
   Schemas,
 } from "./client";
 export {
@@ -14,11 +15,16 @@ export {
   AuthenticationError,
   ConflictError,
   Doc2JsonError,
+  IdempotencyKeyReusedError,
   InsufficientCreditsError,
   InternalServerError,
+  ModelTimeoutError,
   NotFoundError,
+  PayloadTooLargeError,
   PermissionDeniedError,
   RateLimitError,
+  ResultExpiredError,
+  ServiceUnavailableError,
   ValidationError,
 } from "./errors";
 export type * from "./types";

@@ -115,6 +115,14 @@ export type ParseOptions = RequestOptions & {
   schema?: string | SchemaDefinition | ZodSchemaLike;
   /** Ask where each value was read: page, text and bounding box. */
   citations?: boolean;
+  /** Long documents only: fail the whole parse if any chunk of pages cannot be read. */
+  strict?: boolean;
+  /**
+   * A UUID sent as `X-Job-Id`. The same key with the same request returns the
+   * original job instead of running (or charging) again, for about 24 hours.
+   * Defaults to a fresh UUID per call, so SDK retries are safe.
+   */
+  idempotencyKey?: string;
   /** Also return the result as an Excel or CSV file. */
   export?: ExportFormat;
   /** Name of the document. Defaults to the file name. */
@@ -155,4 +163,68 @@ export type ZodParseOptions<S extends ZodSchemaLike> = Omit<ParseOptions, "schem
 export type ZodParseResult<S extends ZodSchemaLike> = ParseResult<InferZod<S>> & {
   /** `schema.safeParse(values)`. A mismatch is reported here, never thrown. */
   validation: ZodValidation<InferZod<S>>;
+};
+
+/** The state of a parse job. */
+export type JobStatus = "queued" | "running" | "succeeded" | "failed" | "expired";
+
+/** What `jobs.create()` returns: the job was accepted and is queued. */
+export type JobAccepted = {
+  status: "ok";
+  job_id: string;
+  job_status: "queued";
+};
+
+/** A parse job. The result fields are present once `job_status` is `succeeded`. */
+export type Job<T = Record<string, unknown>> = {
+  /** `partial` when some pages of a long document could not be read. */
+  status: "ok" | "partial";
+  job_id: string;
+  job_status: JobStatus;
+  /** The idempotency key you sent, when there was one. */
+  client_job_id: string | null;
+  schema: string | null;
+  created_at: string;
+  values?: T;
+  credits_used?: number;
+  credits_remaining?: number;
+  citations?: CitationMap;
+  warnings?: Array<{ code: string; message: string; pages?: [number, number] }>;
+  /** Page ranges `[first, last]` missing from `values` in a partial result. */
+  failed_page_ranges?: Array<[number, number]>;
+};
+
+/** One row of `jobs.list()`. Parsed values are not included. */
+export type JobSummary = {
+  job_id: string;
+  job_status: JobStatus;
+  created_at: string;
+  schema: string | null;
+  credits_used: number | null;
+  client_job_id: string | null;
+};
+
+export type ListJobsParams = {
+  page?: number;
+  /** Up to 100. */
+  pageSize?: number;
+  status?: JobStatus;
+  from?: Date | string;
+  to?: Date | string;
+  /** Find the job started with this idempotency key. */
+  clientJobId?: string;
+};
+
+export type JobList = {
+  jobs: JobSummary[];
+  page: number;
+  pageSize: number;
+  total: number;
+};
+
+export type WaitForJobOptions = RequestOptions & {
+  /** First delay between polls in milliseconds. Grows by half each poll up to 10 s. Defaults to 1000. */
+  pollInterval?: number;
+  /** Give up after this many milliseconds in total. Defaults to 600000 (10 minutes). */
+  waitTimeout?: number;
 };

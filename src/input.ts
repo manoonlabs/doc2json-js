@@ -60,6 +60,7 @@ function sharedFields(options: ParseOptions): Record<string, unknown> {
   const schema = schemaField(options.schema);
   if (schema !== undefined) fields.schema = schema;
   if (options.citations !== undefined) fields.citations = options.citations;
+  if (options.strict !== undefined) fields.strict = options.strict;
   if (options.export !== undefined) fields.export = options.export;
   if (options.filename !== undefined) fields.filename = options.filename;
   return fields;
@@ -74,6 +75,7 @@ function multipart(blob: Blob, name: string | undefined, options: ParseOptions):
         : JSON.stringify(options.schema);
   }
   if (options.citations !== undefined) fields.citations = options.citations ? "true" : "false";
+  if (options.strict !== undefined) fields.strict = options.strict ? "true" : "false";
   if (options.export !== undefined) fields.export = options.export;
   if (options.filename !== undefined) fields.filename = options.filename;
   return { kind: "multipart", blob, filename: options.filename ?? name ?? "document", fields };
