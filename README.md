@@ -45,6 +45,7 @@ values.total; // number | null
 - [Schemas](#schemas)
 - [Excel and CSV export](#excel-and-csv-export)
 - [Checking your key](#checking-your-key)
+- [Async jobs](#async-jobs)
 - [Error handling](#error-handling)
 - [Retries, timeouts and cancellation](#retries-timeouts-and-cancellation)
 - [Options](#options)
@@ -296,6 +297,39 @@ await doc2json.whoami(); // { workspaceId, tokenId, credits_remaining }
 
 `whoami()` confirms that a key works. It doesn't spend anything.
 
+## Async jobs
+
+A long parse can outlive an HTTP connection. Start it with `jobs.create()`, which returns a job id straight away, then poll it.
+
+```ts
+const { job_id } = await doc2json.jobs.create("big-report.pdf", { schema: "report" });
+
+// Poll until it succeeds. Failed jobs throw the typed error for their failure.
+const job = await doc2json.jobs.wait(job_id, { waitTimeout: 5 * 60_000 });
+job.values;
+job.job_status; // "succeeded"
+
+await doc2json.jobs.get(job_id); // one status check
+await doc2json.jobs.list({ status: "succeeded", pageSize: 20 }); // newest first, no values
+```
+
+`job_status` is `queued`, `running`, `succeeded`, `failed` or `expired`. Results are kept for 24 hours; after that `jobs.get()` throws `ResultExpiredError`. `jobs.wait()` polls every second at first, slows to every 10 seconds, and throws `APITimeoutError` when `waitTimeout` (default 10 minutes) runs out. Pass `signal` to cancel it.
+
+### Idempotency
+
+Every `parse()` and `jobs.create()` call sends an `X-Job-Id` UUID. By default the SDK makes one per call and reuses it when it retries after a network error, 429 or 503, so a retry never runs or charges a parse twice. Pass your own `idempotencyKey` to make a call safe to repeat from your side too:
+
+```ts
+import { randomUUID } from "node:crypto";
+
+const key = randomUUID(); // store it with your own record
+await doc2json.jobs.create("invoice.pdf", { schema: "invoice", idempotencyKey: key });
+// Same key, same request, within about 24 hours: returns the original job. Nothing is run or charged again.
+const [existing] = (await doc2json.jobs.list({ clientJobId: key })).jobs;
+```
+
+The same key with a different document or options throws `IdempotencyKeyReusedError` (409). A key you chose is never retried by the SDK after a failed job; use a new UUID to try again.
+
 ## Error handling
 
 Every error extends `Doc2JsonError`, which has these fields:
@@ -328,28 +362,34 @@ try {
 }
 ```
 
-| Class                      | When                                                                                                                                            |
-| -------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------- |
-| `ValidationError`          | 400 or 422: bad input, an unknown schema, or too many pages. Has `pages` and `maxPages` when the document was over the limit. Nothing is spent. |
-| `AuthenticationError`      | 401: the key is missing, unknown, revoked or expired.                                                                                           |
-| `InsufficientCreditsError` | 402: not enough credits. Has `creditsRequired` and `upgrade`.                                                                                   |
-| `PermissionDeniedError`    | 403: parsing is paused for the workspace.                                                                                                       |
-| `NotFoundError`            | 404: the schema wasn't found.                                                                                                                   |
-| `ConflictError`            | 409: the schema name is taken, or the schema limit is reached.                                                                                  |
-| `RateLimitError`           | 429: you sent more than one parse per second per workspace. Has `retryAfter`. Nothing is spent.                                                 |
-| `InternalServerError`      | 5xx: the parse failed or timed out. The charge is refunded.                                                                                     |
-| `APIError`                 | Any other error status. This is the base class of all the classes above.                                                                        |
-| `APIConnectionError`       | No response came back: a network, DNS or TLS failure.                                                                                           |
-| `APITimeoutError`          | The request took longer than `timeout`.                                                                                                         |
-| `APIUserAbortError`        | You aborted the request with `signal`.                                                                                                          |
+| Class                       | When                                                                                                                                            |
+| --------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------- |
+| `ValidationError`           | 400 or 422: bad input, an unknown schema, or too many pages. Has `pages` and `maxPages` when the document was over the limit. Nothing is spent. |
+| `AuthenticationError`       | 401: the key is missing, unknown, revoked or expired.                                                                                           |
+| `InsufficientCreditsError`  | 402: not enough credits. Has `creditsRequired` and `upgrade`.                                                                                   |
+| `PermissionDeniedError`     | 403: parsing is paused for the workspace.                                                                                                       |
+| `NotFoundError`             | 404: the schema wasn't found.                                                                                                                   |
+| `ConflictError`             | 409: the schema name is taken, or the schema limit is reached.                                                                                  |
+| `IdempotencyKeyReusedError` | 409 `IDEMPOTENCY_KEY_REUSED`: the key was used with a different request. Has `jobId`. A `ConflictError`.                                        |
+| `ResultExpiredError`        | 410: the job's result is past its 24-hour window.                                                                                               |
+| `PayloadTooLargeError`      | 413: the request body is over 40 MB (documents are limited to 25 MB).                                                                           |
+| `RateLimitError`            | 429: you sent more than one parse per second per workspace. Has `retryAfter`. Nothing is spent.                                                 |
+| `InternalServerError`       | 5xx: the parse failed or timed out. The charge is refunded.                                                                                     |
+| `ServiceUnavailableError`   | 503 `SERVICE_UNAVAILABLE`: nothing was charged. Has `retryAfter`. An `InternalServerError`.                                                     |
+| `ModelTimeoutError`         | 504: the parse ran too long. The charge is refunded. An `InternalServerError`.                                                                  |
+| `APIError`                  | Any other error status. This is the base class of all the classes above.                                                                        |
+| `APIConnectionError`        | No response came back: a network, DNS or TLS failure.                                                                                           |
+| `APITimeoutError`           | The request took longer than `timeout`.                                                                                                         |
+| `APIUserAbortError`         | You aborted the request with `signal`.                                                                                                          |
 
-API errors also carry `creditsUsed` and `creditsRemaining` when the server sends them.
+API errors also carry `creditsUsed` and `creditsRemaining` when the server sends them, plus `jobId` and `failureCode` (such as `SERVICE_UNAVAILABLE`) when the body has them.
 
 ## Retries, timeouts and cancellation
 
 - **Retried by default:** requests that fail with 408, 429, 5xx or a network error are retried twice, with jittered exponential backoff.
 - **Retry timing:** a `Retry-After` header, or `retry_after` in the body, is honoured.
-- **Not retried:** `schemas.create()`, so you never get a duplicate.
+- **Retry-After:** honoured for 429 and 503, capped at 60 seconds. The same idempotency key is sent again, so a retry cannot double-run a parse.
+- **Not retried:** other 4xx errors, a failed job, a failed parse that used your own `idempotencyKey`, and `schemas.create()`, so you never get a duplicate.
 
 ```ts
 const doc2json = new Doc2Json({
@@ -379,15 +419,17 @@ await doc2json.parse("invoice.pdf", {
 
 **Per-call options** (`parse(input, options)`):
 
-| Option       | Type                                    | Description                                                                |
-| ------------ | --------------------------------------- | -------------------------------------------------------------------------- |
-| `schema`     | `string \| SchemaDefinition \| ZodType` | A saved schema name, an inline definition, or a [Zod schema](#zod-schemas) |
-| `citations`  | `boolean`                               | Also return where each value was read. See [Citations](#citations)         |
-| `export`     | `"xlsx" \| "csv"`                       | Also return a spreadsheet                                                  |
-| `filename`   | `string`                                | Document name. Defaults to the file's own name                             |
-| `signal`     | `AbortSignal`                           | Cancel the request                                                         |
-| `timeout`    | `number`                                | Override the client timeout                                                |
-| `maxRetries` | `number`                                | Override the client retry count                                            |
+| Option           | Type                                    | Description                                                                |
+| ---------------- | --------------------------------------- | -------------------------------------------------------------------------- |
+| `schema`         | `string \| SchemaDefinition \| ZodType` | A saved schema name, an inline definition, or a [Zod schema](#zod-schemas) |
+| `citations`      | `boolean`                               | Also return where each value was read. See [Citations](#citations)         |
+| `export`         | `"xlsx" \| "csv"`                       | Also return a spreadsheet                                                  |
+| `strict`         | `boolean`                               | Long documents: fail the parse if any chunk of pages can't be read         |
+| `idempotencyKey` | `string`                                | A UUID sent as `X-Job-Id`. See [Idempotency](#idempotency)                 |
+| `filename`       | `string`                                | Document name. Defaults to the file's own name                             |
+| `signal`         | `AbortSignal`                           | Cancel the request                                                         |
+| `timeout`        | `number`                                | Override the client timeout                                                |
+| `maxRetries`     | `number`                                | Override the client retry count                                            |
 
 `signal`, `timeout` and `maxRetries` also work on `whoami()` and every `schemas.*` method.
 

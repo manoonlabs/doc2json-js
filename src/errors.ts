@@ -60,12 +60,19 @@ export class APIError extends Doc2JsonError {
   declare readonly status: number;
   readonly creditsUsed: number | undefined;
   readonly creditsRemaining: number | undefined;
+  /** The parse job this error belongs to, when the body names one. */
+  readonly jobId: string | undefined;
+  /** The body's `failure_code`, such as `SERVICE_UNAVAILABLE` or `IDEMPOTENCY_KEY_REUSED`. */
+  readonly failureCode: string | undefined;
 
   constructor(message: string, options: APIErrorOptions & { code?: string }) {
     super(message, { ...options, code: options.code ?? "api_error" });
     const fields = credits(options.body);
     this.creditsUsed = fields.creditsUsed;
     this.creditsRemaining = fields.creditsRemaining;
+    const body = isRecord(options.body) ? options.body : {};
+    this.jobId = typeof body.job_id === "string" ? body.job_id : undefined;
+    this.failureCode = typeof body.failure_code === "string" ? body.failure_code : undefined;
   }
 }
 
@@ -126,6 +133,28 @@ export class ConflictError extends APIError {
   }
 }
 
+/** 409 with `IDEMPOTENCY_KEY_REUSED`: the key was already used with a different request. */
+export class IdempotencyKeyReusedError extends ConflictError {
+  constructor(message: string, options: APIErrorOptions) {
+    super(message, options);
+    (this as { code: string }).code = "idempotency_key_reused";
+  }
+}
+
+/** 410: the stored result of a job is past its retention window. */
+export class ResultExpiredError extends APIError {
+  constructor(message: string, options: APIErrorOptions) {
+    super(message, { ...options, code: "result_expired" });
+  }
+}
+
+/** 413: the request body is over the size limit. Nothing was spent. */
+export class PayloadTooLargeError extends APIError {
+  constructor(message: string, options: APIErrorOptions) {
+    super(message, { ...options, code: "payload_too_large" });
+  }
+}
+
 /** 429: the workspace parsed too recently. Nothing was spent. */
 export class RateLimitError extends APIError {
   /** Seconds to wait before trying again. */
@@ -141,6 +170,26 @@ export class RateLimitError extends APIError {
 export class InternalServerError extends APIError {
   constructor(message: string, options: APIErrorOptions) {
     super(message, { ...options, code: "server_error" });
+  }
+}
+
+/** 503 `SERVICE_UNAVAILABLE`: nothing was charged. Retry after `retryAfter` seconds. */
+export class ServiceUnavailableError extends InternalServerError {
+  /** Seconds to wait before trying again. */
+  readonly retryAfter: number | undefined;
+
+  constructor(message: string, options: APIErrorOptions & { retryAfter?: number }) {
+    super(message, options);
+    (this as { code: string }).code = "service_unavailable";
+    this.retryAfter = options.retryAfter;
+  }
+}
+
+/** 504 `MODEL_TIMEOUT`: the parse ran too long and was stopped. The charge is refunded. */
+export class ModelTimeoutError extends InternalServerError {
+  constructor(message: string, options: APIErrorOptions) {
+    super(message, options);
+    (this as { code: string }).code = "model_timeout";
   }
 }
 
@@ -191,6 +240,8 @@ const DEFAULT_MESSAGES: Record<number, string> = {
   404: "Not found.",
   405: "Method not allowed.",
   409: "Conflict.",
+  410: "This parse result has expired.",
+  413: "The request body is too large.",
   429: "Rate limited. Try again shortly.",
 };
 
@@ -212,7 +263,13 @@ export function errorFromResponse(
   if (status === 402) return new InsufficientCreditsError(message, options);
   if (status === 403) return new PermissionDeniedError(message, options);
   if (status === 404) return new NotFoundError(message, options);
-  if (status === 409) return new ConflictError(message, options);
+  if (status === 409) {
+    return isRecord(body) && body.failure_code === "IDEMPOTENCY_KEY_REUSED"
+      ? new IdempotencyKeyReusedError(message, options)
+      : new ConflictError(message, options);
+  }
+  if (status === 410) return new ResultExpiredError(message, options);
+  if (status === 413) return new PayloadTooLargeError(message, options);
   if (status === 429) {
     const retryAfter = retryAfterSeconds(headers, body);
     return new RateLimitError(message, {
@@ -220,6 +277,14 @@ export function errorFromResponse(
       ...(retryAfter === undefined ? {} : { retryAfter }),
     });
   }
+  if (status === 503) {
+    const retryAfter = retryAfterSeconds(headers, body);
+    return new ServiceUnavailableError(message, {
+      ...options,
+      ...(retryAfter === undefined ? {} : { retryAfter }),
+    });
+  }
+  if (status === 504) return new ModelTimeoutError(message, options);
   if (status >= 500) return new InternalServerError(message, options);
   return new APIError(message, options);
 }
