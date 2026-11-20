@@ -1,13 +1,12 @@
 name: Publish
 
 # Publishes to npm with trusted publishing (OIDC). No NPM_TOKEN is used.
-# Release: bump "version" in package.json, merge, then push a matching tag:
-#   git tag v0.1.1 && git push origin v0.1.1
+# Release: bump "version" in package.json and push to main.
+# A push whose version is already on npm succeeds without publishing again.
 
 on:
   push:
-    tags:
-      - "v*"
+    branches: [main]
 
 permissions:
   id-token: write # required for npm trusted publishing (OIDC)
@@ -29,18 +28,18 @@ jobs:
       - run: npm install -g npm@latest
       - run: npm --version
 
-      - name: Check the tag matches package.json
-        run: |
-          TAG="${GITHUB_REF_NAME#v}"
-          VERSION="$(node -p "require('./package.json').version")"
-          if [ "$TAG" != "$VERSION" ]; then
-            echo "Tag v$TAG does not match package.json version $VERSION" >&2
-            exit 1
-          fi
-
       - run: npm ci
       - run: npm run typecheck
       - run: npm run lint
       - run: npm test
       - run: npm run build
-      - run: npm publish --provenance --access public
+
+      - name: Publish if this version is not on npm
+        run: |
+          NAME="$(node -p "require('./package.json').name")"
+          VERSION="$(node -p "require('./package.json').version")"
+          if npm view "$NAME@$VERSION" version >/dev/null 2>&1; then
+            echo "$NAME@$VERSION is already on npm"
+            exit 0
+          fi
+          npm publish --provenance --access public
