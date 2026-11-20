@@ -464,7 +464,7 @@ The SDK covers the REST API. The same parsing is also available in two other pla
 
 ## Pricing
 
-There's a Free plan with 50 credits a month and no card needed. One credit is one page, an image counts as one page, and plain text costs one credit per 3,000 characters. You're only charged when extraction succeeds. See [pricing](https://doxtract.manoonlabs.com/pricing) for the paid plans.
+There's a Free plan with 20 pages a month and no card needed. One page is one PDF page, an image counts as one page, and plain text costs one page per 3,000 characters. You're only charged when extraction succeeds. See [pricing](https://doxtract.manoonlabs.com/pricing) for the paid plans.
 
 ## Development
 
