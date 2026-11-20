@@ -478,11 +478,10 @@ npm run lint       # biome
 
 ### Release to npm
 
-Publishing uses npm **Trusted Publishing** from GitHub Actions. Merging to `main` runs CI only; npm updates when you push a **version tag**:
+Publishing uses npm **Trusted Publishing** from GitHub Actions. A push to `main` publishes when `package.json` `version` is not already on npm.
 
 1. Bump `version` in `package.json`, `VERSION` in `src/version.ts`, and `CHANGELOG.md`.
-2. Merge to `main`.
-3. `git tag vX.Y.Z && git push origin vX.Y.Z` (the tag without `v` must match `package.json`).
+2. Merge to `main`. The Publish workflow runs `npm publish`.
 
 See `.github/workflows/publish.yml`. Cursor agents follow `.cursor/rules/release.mdc` for the full checklist.
 
