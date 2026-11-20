@@ -409,13 +409,13 @@ await doxtract.parse("invoice.pdf", {
 
 **Client options** (`new Doxtract(options)`):
 
-| Option       | Default                           | Description                                 |
-| ------------ | --------------------------------- | ------------------------------------------- |
-| `apiKey`     | `DOXTRACT_API_KEY`, else `DOC2JSON_API_KEY` | Your API key (`mldxt_…`)          |
-| `baseUrl`    | `https://doxtract.manoonlabs.com` | API origin                                  |
-| `timeout`    | `120000`                          | Milliseconds per attempt                    |
-| `maxRetries` | `2`                               | Retries on 408, 429, 5xx and network errors |
-| `fetch`      | global `fetch`                    | A custom fetch, for proxies or tests        |
+| Option       | Default                                     | Description                                 |
+| ------------ | ------------------------------------------- | ------------------------------------------- |
+| `apiKey`     | `DOXTRACT_API_KEY`, else `DOC2JSON_API_KEY` | Your API key (`mldxt_…`)                    |
+| `baseUrl`    | `https://doxtract.manoonlabs.com`           | API origin                                  |
+| `timeout`    | `120000`                                    | Milliseconds per attempt                    |
+| `maxRetries` | `2`                                         | Retries on 408, 429, 5xx and network errors |
+| `fetch`      | global `fetch`                              | A custom fetch, for proxies or tests        |
 
 **Per-call options** (`parse(input, options)`):
 
