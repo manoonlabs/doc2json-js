@@ -2,7 +2,7 @@ import { describe, expect, expectTypeOf, it } from "vitest";
 import { z } from "zod";
 import * as zm from "zod/mini";
 import {
-  Doc2JsonError,
+  DoxtractError,
   isZodSchema,
   jsonSchemaToDefinition,
   type ParseResult,
@@ -100,7 +100,7 @@ describe("zodToSchema", () => {
     });
   });
 
-  it("falls back to any for shapes doc2json has no type for", async () => {
+  it("falls back to any for shapes doxtract has no type for", async () => {
     const schema = z.object({
       mixed: z.union([z.string(), z.number()]),
       tags: z.record(z.string(), z.string()),
@@ -125,7 +125,7 @@ describe("zodToSchema", () => {
   });
 
   it("rejects a root that is not an object with keys", async () => {
-    await expect(zodToSchema(z.string())).rejects.toBeInstanceOf(Doc2JsonError);
+    await expect(zodToSchema(z.string())).rejects.toBeInstanceOf(DoxtractError);
     await expect(zodToSchema(z.object({}))).rejects.toMatchObject({ code: "invalid_schema" });
   });
 

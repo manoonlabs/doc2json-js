@@ -1,5 +1,5 @@
 /** Base class of every error thrown by the SDK. */
-export class Doc2JsonError extends Error {
+export class DoxtractError extends Error {
   /** HTTP status, or undefined when no response was received. */
   readonly status: number | undefined;
   /** A stable machine-readable code, such as `rate_limited`. */
@@ -56,7 +56,7 @@ type APIErrorOptions = {
 };
 
 /** An error response from the API. */
-export class APIError extends Doc2JsonError {
+export class APIError extends DoxtractError {
   declare readonly status: number;
   readonly creditsUsed: number | undefined;
   readonly creditsRemaining: number | undefined;
@@ -194,9 +194,9 @@ export class ModelTimeoutError extends InternalServerError {
 }
 
 /** The request never got a response: network failure, DNS, TLS and so on. */
-export class APIConnectionError extends Doc2JsonError {
+export class APIConnectionError extends DoxtractError {
   constructor(
-    message = "Could not connect to the doc2json API.",
+    message = "Could not connect to the doxtract API.",
     options: { cause?: unknown } = {},
   ) {
     super(message, { ...options, code: "connection_error" });
@@ -205,14 +205,14 @@ export class APIConnectionError extends Doc2JsonError {
 
 /** The request took longer than the timeout. */
 export class APITimeoutError extends APIConnectionError {
-  constructor(message = "The request to the doc2json API timed out.") {
+  constructor(message = "The request to the doxtract API timed out.") {
     super(message);
     (this as { code: string }).code = "timeout";
   }
 }
 
 /** The caller aborted the request with its AbortSignal. */
-export class APIUserAbortError extends Doc2JsonError {
+export class APIUserAbortError extends DoxtractError {
   constructor(message = "The request was aborted.", options: { cause?: unknown } = {}) {
     super(message, { ...options, code: "aborted" });
   }
@@ -288,3 +288,6 @@ export function errorFromResponse(
   if (status >= 500) return new InternalServerError(message, options);
   return new APIError(message, options);
 }
+
+/** @deprecated Use DoxtractError. */
+export { DoxtractError as Doc2JsonError };

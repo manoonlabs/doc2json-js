@@ -1,4 +1,4 @@
-import { Doc2JsonError } from "./errors";
+import { DoxtractError } from "./errors";
 
 export const SCHEMA_NAME_MAX_LENGTH = 80;
 const CUSTOM_SCHEMA_LABEL = "__custom_schema";
@@ -56,7 +56,7 @@ export function schemaSlugFromDisplayName(display: string): string | null {
 export function resolveSchemaSlug(input: string): string {
   const slug = normalizeSchemaSlug(input) ?? schemaSlugFromDisplayName(input);
   if (!slug) {
-    throw new Doc2JsonError(`Invalid schema slug: ${input.trim().slice(0, 80)}`, {
+    throw new DoxtractError(`Invalid schema slug: ${input.trim().slice(0, 80)}`, {
       code: "invalid_input",
     });
   }

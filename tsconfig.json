@@ -14,7 +14,7 @@
     "skipLibCheck": true,
     "noEmit": true,
     "paths": {
-      "@manoonlabs/doc2json": ["./src/index.ts"]
+      "@manoonlabs/doxtract": ["./src/index.ts"]
     }
   },
   "include": ["src", "test", "examples", "tsup.config.ts", "vitest.config.ts"]

@@ -2,7 +2,7 @@ import { mkdtemp, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
-import { Doc2Json, Doc2JsonError } from "../src";
+import { Doc2Json, Doxtract, DoxtractError } from "../src";
 import { formBody, header, jsonBody, jsonResponse, mockClient, OK } from "./helpers";
 
 const PDF = new Uint8Array([0x25, 0x50, 0x44, 0x46, 0x2d, 0x31]); // %PDF-1
@@ -13,31 +13,50 @@ async function fileText(form: FormData): Promise<{ name: string; bytes: Uint8Arr
 }
 
 describe("client setup", () => {
-  it("reads DOC2JSON_API_KEY from the environment", () => {
-    const before = process.env.DOC2JSON_API_KEY;
-    process.env.DOC2JSON_API_KEY = "env_key";
+  it("reads DOXTRACT_API_KEY from the environment", () => {
+    const before = process.env.DOXTRACT_API_KEY;
+    process.env.DOXTRACT_API_KEY = "env_key";
     try {
-      expect(() => new Doc2Json({ fetch: (() => {}) as unknown as typeof fetch })).not.toThrow();
+      expect(() => new Doxtract({ fetch: (() => {}) as unknown as typeof fetch })).not.toThrow();
     } finally {
-      if (before === undefined) delete process.env.DOC2JSON_API_KEY;
-      else process.env.DOC2JSON_API_KEY = before;
+      if (before === undefined) delete process.env.DOXTRACT_API_KEY;
+      else process.env.DOXTRACT_API_KEY = before;
+    }
+  });
+
+  it("still reads DOC2JSON_API_KEY when DOXTRACT_API_KEY is unset", () => {
+    const dox = process.env.DOXTRACT_API_KEY;
+    const old = process.env.DOC2JSON_API_KEY;
+    delete process.env.DOXTRACT_API_KEY;
+    process.env.DOC2JSON_API_KEY = "legacy_key";
+    try {
+      expect(() => new Doxtract({ fetch: (() => {}) as unknown as typeof fetch })).not.toThrow();
+      expect(Doc2Json).toBe(Doxtract);
+    } finally {
+      if (dox === undefined) delete process.env.DOXTRACT_API_KEY;
+      else process.env.DOXTRACT_API_KEY = dox;
+      if (old === undefined) delete process.env.DOC2JSON_API_KEY;
+      else process.env.DOC2JSON_API_KEY = old;
     }
   });
 
   it("throws without an API key", () => {
-    const before = process.env.DOC2JSON_API_KEY;
+    const before = process.env.DOXTRACT_API_KEY;
+    const legacy = process.env.DOC2JSON_API_KEY;
+    delete process.env.DOXTRACT_API_KEY;
     delete process.env.DOC2JSON_API_KEY;
     try {
-      expect(() => new Doc2Json()).toThrow(Doc2JsonError);
+      expect(() => new Doxtract()).toThrow(DoxtractError);
     } finally {
-      if (before !== undefined) process.env.DOC2JSON_API_KEY = before;
+      if (before !== undefined) process.env.DOXTRACT_API_KEY = before;
+      if (legacy !== undefined) process.env.DOC2JSON_API_KEY = legacy;
     }
   });
 
   it("sends the bearer token to the default base URL", async () => {
     const { client, calls } = mockClient([jsonResponse(OK)]);
     await client.parse({ text: "hello" });
-    expect(calls[0]?.url).toBe("https://doc2json.manoonlabs.com/api/v1/parse");
+    expect(calls[0]?.url).toBe("https://doxtract.manoonlabs.com/api/v1/parse");
     expect(calls[0]?.init.method).toBe("POST");
     expect(header(calls[0], "Authorization")).toBe("Bearer test_key");
   });
@@ -51,7 +70,7 @@ describe("client setup", () => {
 
 describe("parse inputs", () => {
   it("uploads a file path as multipart with its base name", async () => {
-    const dir = await mkdtemp(join(tmpdir(), "doc2json-"));
+    const dir = await mkdtemp(join(tmpdir(), "doxtract-"));
     const path = join(dir, "invoice.pdf");
     await writeFile(path, PDF);
     const { client, calls } = mockClient([jsonResponse(OK)]);
@@ -142,7 +161,7 @@ describe("parse inputs", () => {
 
   it("rejects unsupported input", async () => {
     const { client } = mockClient([]);
-    await expect(client.parse(42 as unknown as string)).rejects.toBeInstanceOf(Doc2JsonError);
+    await expect(client.parse(42 as unknown as string)).rejects.toBeInstanceOf(DoxtractError);
   });
 });
 

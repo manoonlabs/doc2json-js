@@ -1,5 +1,5 @@
 import { vi } from "vitest";
-import { Doc2Json, type Doc2JsonOptions } from "../src";
+import { Doxtract, type DoxtractOptions } from "../src";
 
 export type Call = { url: string; init: RequestInit };
 
@@ -15,7 +15,7 @@ export const OK = { status: "ok", credits_used: 1, credits_remaining: 49, values
 /** A client whose fetch returns the given responses in order. */
 export function mockClient(
   responses: Array<Response | Error | (() => Response | Promise<Response>)>,
-  options: Doc2JsonOptions = {},
+  options: DoxtractOptions = {},
 ) {
   const calls: Call[] = [];
   const fetchMock = vi.fn(async (url: string | URL | Request, init?: RequestInit) => {
@@ -25,7 +25,7 @@ export function mockClient(
     if (next instanceof Error) throw next;
     return typeof next === "function" ? next() : next;
   });
-  const client = new Doc2Json({
+  const client = new Doxtract({
     apiKey: "test_key",
     fetch: fetchMock as unknown as typeof fetch,
     ...options,

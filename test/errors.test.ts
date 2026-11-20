@@ -5,7 +5,7 @@ import {
   APIUserAbortError,
   AuthenticationError,
   ConflictError,
-  Doc2JsonError,
+  DoxtractError,
   InsufficientCreditsError,
   InternalServerError,
   NotFoundError,
@@ -35,7 +35,7 @@ describe("typed errors", () => {
     ]);
     const error = await client.parse({ text: "x" }).catch((e) => e);
     expect(error).toBeInstanceOf(ValidationError);
-    expect(error).toBeInstanceOf(Doc2JsonError);
+    expect(error).toBeInstanceOf(DoxtractError);
     expect(error.status).toBe(400);
     expect(error.code).toBe("validation_error");
     expect(error.message).toBe("Unknown schema: invoice");

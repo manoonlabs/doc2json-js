@@ -33,6 +33,6 @@ jobs:
       - run: npm run build
       - name: Smoke test the build
         run: |
-          node -e "const { Doc2Json } = require('./dist/index.cjs'); if (typeof Doc2Json !== 'function') process.exit(1)"
-          node --input-type=module -e "import { Doc2Json } from './dist/index.js'; if (typeof Doc2Json !== 'function') process.exit(1)"
+          node -e "const { Doxtract } = require('./dist/index.cjs'); if (typeof Doxtract !== 'function') process.exit(1)"
+          node --input-type=module -e "import { Doxtract } from './dist/index.js'; if (typeof Doxtract !== 'function') process.exit(1)"
       - run: npm pack --dry-run

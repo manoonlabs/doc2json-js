@@ -34,9 +34,16 @@ export type CitationBox = [number, number, number, number];
  * - `fuzzy`: a close match was found.
  * - `mismatch`: the text was found but does not hold the value.
  * - `other_page`: found on a different page than cited.
+ * - `ambiguous`: the text appears more than once and no row picks one.
  * - `unverified`: could not be checked.
  */
-export type CitationStatus = "verified" | "fuzzy" | "mismatch" | "other_page" | "unverified";
+export type CitationStatus =
+  | "verified"
+  | "fuzzy"
+  | "mismatch"
+  | "other_page"
+  | "ambiguous"
+  | "unverified";
 
 /** `text_layer` for a box measured from the PDF text, `model` for scans and images. */
 export type CitationSource = "text_layer" | "model";
@@ -139,6 +146,8 @@ export type WhoAmI = {
 export type SchemaSummary = {
   id: string;
   name: string;
+  /** Path segment. Renaming `name` can change this. */
+  slug: string;
   keyCount: number;
   createdAt: string;
   updatedAt: string;

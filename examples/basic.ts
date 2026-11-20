@@ -1,9 +1,9 @@
 /**
  * Parse an invoice and print the total, with citations.
  *
- *   DOC2JSON_API_KEY=... npx tsx examples/basic.ts path/to/invoice.pdf
+ *   DOXTRACT_API_KEY=... npx tsx examples/basic.ts path/to/invoice.pdf
  */
-import { Doc2Json, Doc2JsonError } from "@manoonlabs/doc2json";
+import { Doxtract, DoxtractError } from "@manoonlabs/doxtract";
 
 type Invoice = {
   vendor: string | null;
@@ -12,11 +12,11 @@ type Invoice = {
   lineItems: { description: string; amount: number }[];
 };
 
-const doc2json = new Doc2Json();
+const doxtract = new Doxtract();
 const path = process.argv[2] ?? "invoice.pdf";
 
 try {
-  const result = await doc2json.parse<Invoice>(path, {
+  const result = await doxtract.parse<Invoice>(path, {
     schema: {
       type: "object",
       properties: {
@@ -41,7 +41,7 @@ try {
   console.log(result.values);
   console.log("total was read from:", result.citations?.total);
 } catch (error) {
-  if (error instanceof Doc2JsonError) {
+  if (error instanceof DoxtractError) {
     console.error(`${error.name} (${error.status ?? "no response"}): ${error.message}`);
     process.exit(1);
   }

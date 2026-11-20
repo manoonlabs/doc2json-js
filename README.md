@@ -1,42 +1,42 @@
 <p align="center">
-  <img src="assets/banner.png" alt="doc2json: Turn PDFs, scans and photos into clean, typed JSON" width="100%">
+  <img src="assets/banner.png" alt="Doxtract: Turn PDFs, scans and photos into clean, typed JSON" width="100%">
 </p>
 
 <p align="center">
-  <a href="https://www.npmjs.com/package/@manoonlabs/doc2json"><img src="https://img.shields.io/npm/v/@manoonlabs/doc2json.svg?color=00865a" alt="npm version"></a>
-  <a href="https://github.com/manoonlabs/doc2json-js/actions/workflows/ci.yml"><img src="https://github.com/manoonlabs/doc2json-js/actions/workflows/ci.yml/badge.svg" alt="CI"></a>
+  <a href="https://www.npmjs.com/package/@manoonlabs/doxtract"><img src="https://img.shields.io/npm/v/@manoonlabs/doxtract.svg?color=00865a" alt="npm version"></a>
+  <a href="https://github.com/manoonlabs/doxtract-js/actions/workflows/ci.yml"><img src="https://github.com/manoonlabs/doxtract-js/actions/workflows/ci.yml/badge.svg" alt="CI"></a>
   <a href="./LICENSE"><img src="https://img.shields.io/badge/license-MIT-00865a.svg" alt="MIT license"></a>
   <img src="https://img.shields.io/badge/TypeScript-ready-3178c6.svg?logo=typescript&logoColor=white" alt="TypeScript">
   <img src="https://img.shields.io/badge/node-%3E%3D18-417e38.svg" alt="Node 18+">
   <img src="https://img.shields.io/badge/dependencies-0-00865a.svg" alt="Zero runtime dependencies">
-  <a href="https://mcptry.com/servers/com.manoonlabs/doc2json"><img src="https://mcptry.com/badge/com.manoonlabs/doc2json" alt="mcptry"></a>
+  <a href="https://mcptry.com/servers/com.manoonlabs/doxtract"><img src="https://mcptry.com/badge/com.manoonlabs/doxtract" alt="mcptry"></a>
 </p>
 
 <p align="center">
-  <a href="https://doc2json.manoonlabs.com/sign-up"><b>Get an API key</b></a> ·
-  <a href="https://doc2json.manoonlabs.com/docs">API docs</a> ·
-  <a href="https://doc2json.manoonlabs.com/playground">Playground</a> ·
-  <a href="https://doc2json.manoonlabs.com/docs/mcp">MCP server</a> ·
-  <a href="https://doc2json.manoonlabs.com/benchmark">Benchmark</a>
+  <a href="https://doxtract.manoonlabs.com/sign-up"><b>Get an API key</b></a> ·
+  <a href="https://doxtract.manoonlabs.com/docs">API docs</a> ·
+  <a href="https://doxtract.manoonlabs.com/playground">Playground</a> ·
+  <a href="https://doxtract.manoonlabs.com/docs/mcp">MCP server</a> ·
+  <a href="https://doxtract.manoonlabs.com/benchmark">Benchmark</a>
 </p>
 
-The official JavaScript and TypeScript SDK for [doc2json](https://doc2json.manoonlabs.com). Send a PDF, scan, phone photo or text, plus the schema you want. Get back JSON in that shape. If a field isn't on the document, you get `null`, not a guess.
+The official JavaScript and TypeScript SDK for [Doxtract](https://doxtract.manoonlabs.com). Send a PDF, scan, phone photo or text, plus the schema you want. Get back JSON in that shape. If a field isn't on the document, you get `null`, not a guess.
 
 ```ts
-import { Doc2Json } from "@manoonlabs/doc2json";
+import { Doxtract } from "@manoonlabs/doxtract";
 import { z } from "zod";
 
-const doc2json = new Doc2Json(); // reads DOC2JSON_API_KEY
+const doxtract = new Doxtract(); // reads DOXTRACT_API_KEY
 
 const Invoice = z.object({ vendor: z.string().nullable(), total: z.number().nullable() });
 
-const { values } = await doc2json.parse("invoice.pdf", { schema: Invoice });
+const { values } = await doxtract.parse("invoice.pdf", { schema: Invoice });
 values.total; // number | null
 ```
 
 ## Contents
 
-- [Why doc2json](#why-doc2json)
+- [Why Doxtract](#why-doxtract)
 - [Benchmark](#benchmark)
 - [Citations](#citations)
 - [Install](#install)
@@ -55,7 +55,7 @@ values.total; // number | null
 - [Development](#development)
 - [License](#license)
 
-## Why doc2json
+## Why Doxtract
 
 - **It copes with messy input.** Rotated pages, phone photos, scanned receipts and multi-page PDFs. That's where a plain LLM prompt starts guessing.
 - **The schema drives the output.** You define the fields once, as a saved schema or inline. Every response matches that shape, and arrays are always arrays.
@@ -65,33 +65,33 @@ values.total; // number | null
 
 ## Benchmark
 
-We ran doc2json and a plain LLM prompt over **45 public documents with the same schema**, then scored every field against a hand-checked answer key.
+We ran Doxtract and a plain LLM prompt over **45 public documents with the same schema**, then scored every field against a hand-checked answer key.
 
 <p align="center">
-  <img src="assets/benchmark.png" alt="Fields extracted correctly. All fields: doc2json 98.7%, plain LLM prompt 69.7%. Rotated pages: 100% vs 39.3%. Phone photos: 96.2% vs 56.4%." width="100%">
+  <img src="assets/benchmark.png" alt="Fields extracted correctly. All fields: Doxtract 98.7%, plain LLM prompt 69.7%. Rotated pages: 100% vs 39.3%. Phone photos: 96.2% vs 56.4%." width="100%">
 </p>
 
-| Fields extracted correctly                  |  doc2json | Plain LLM prompt |
+| Fields extracted correctly                  |  Doxtract | Plain LLM prompt |
 | ------------------------------------------- | --------: | ---------------: |
 | All fields                                  | **98.7%** |            69.7% |
 | Rotated pages                               |  **100%** |            39.3% |
 | Phone photos                                | **96.2%** |            56.4% |
 | Made-up values per 100 fields (all 50 docs) |   **0.1** |              1.9 |
 
-The method, caveats and per-document CSV are on the [benchmark page](https://doc2json.manoonlabs.com/benchmark).
+The method, caveats and per-document CSV are on the [benchmark page](https://doxtract.manoonlabs.com/benchmark).
 
 ## Citations
 
 Every extracted value links back to where it came from. Click a value to see its box on the document, or click a box to jump to the value.
 
 <p align="center">
-  <img src="assets/citations-demo.gif" alt="doc2json citations demo: clicking a value in the JSON highlights its box on the invoice" width="100%">
+  <img src="assets/citations-demo.gif" alt="Doxtract citations demo: clicking a value in the JSON highlights its box on the invoice" width="100%">
 </p>
 
 In the SDK, set `citations: true`:
 
 ```ts
-const result = await doc2json.parse("invoice.pdf", { schema: Invoice, citations: true });
+const result = await doxtract.parse("invoice.pdf", { schema: Invoice, citations: true });
 
 result.citations?.["total"];
 // { page: 1, text: "Total 1,280.50", bbox: [0.62, 0.81, 0.91, 0.84], status: "verified", source: "text_layer" }
@@ -105,49 +105,49 @@ result.citations?.["total"];
 ## Install
 
 ```sh
-npm install @manoonlabs/doc2json
+npm install @manoonlabs/doxtract
 # or
-pnpm add @manoonlabs/doc2json
-yarn add @manoonlabs/doc2json
-bun add @manoonlabs/doc2json
+pnpm add @manoonlabs/doxtract
+yarn add @manoonlabs/doxtract
+bun add @manoonlabs/doxtract
 ```
 
-On Deno, import `npm:@manoonlabs/doc2json`.
+On Deno, import `npm:@manoonlabs/doxtract`.
 
 `zod` (version 4) is a peer dependency, used only when you pass a [Zod schema](#zod-schemas). npm 7 and later and pnpm install it for you. On Yarn, run `yarn add zod` if you want Zod schemas. Plain schemas work without it.
 
 ## Quick start
 
-1. [Sign up](https://doc2json.manoonlabs.com/sign-up) and create a key on the [API Keys](https://doc2json.manoonlabs.com/apikeys) page. The full secret is shown once.
+1. [Sign up](https://doxtract.manoonlabs.com/sign-up) and create a key on the [API Keys](https://doxtract.manoonlabs.com/apikeys) page. The full secret is shown once.
 2. Put the key in your environment:
 
    ```sh
-   export DOC2JSON_API_KEY=bk_live_...
+   export DOXTRACT_API_KEY=bk_live_...
    ```
 
 3. Parse a document:
 
    ```ts
-   import { Doc2Json } from "@manoonlabs/doc2json";
+   import { Doxtract } from "@manoonlabs/doxtract";
    import { z } from "zod";
 
-   const doc2json = new Doc2Json({ apiKey: process.env.DOC2JSON_API_KEY });
+   const doxtract = new Doxtract({ apiKey: process.env.DOXTRACT_API_KEY });
 
    const Invoice = z.object({
      vendor: z.string().nullable(),
      total: z.number().nullable(),
    });
 
-   const result = await doc2json.parse("invoice.pdf", { schema: Invoice });
+   const result = await doxtract.parse("invoice.pdf", { schema: Invoice });
 
    console.log(result.values); // { vendor: "Northwind Supply", total: 1280.5 }
    ```
 
 Not using Zod? Pass a plain JSON schema or a saved schema name instead. See [Without Zod](#without-zod).
 
-If you leave out `apiKey`, the client reads `DOC2JSON_API_KEY` from the environment. If there's no key at all, the constructor throws a `Doc2JsonError` with code `missing_api_key`.
+If you leave out `apiKey`, the client reads `DOXTRACT_API_KEY`, then `DOC2JSON_API_KEY`. If there's no key at all, the constructor throws a `DoxtractError` with code `missing_api_key`. `Doc2Json` and `Doc2JsonError` are still exported.
 
-Want to see the output before writing code? Run a sample invoice in the [Playground](https://doc2json.manoonlabs.com/playground). No sign-in needed.
+Want to see the output before writing code? Run a sample invoice in the [Playground](https://doxtract.manoonlabs.com/playground). No sign-in needed.
 
 ## Inputs
 
@@ -157,19 +157,19 @@ Want to see the output before writing code? Run a sample invoice in the [Playgro
 import { readFile } from "node:fs/promises";
 
 // A file path (Node, Bun and Deno)
-await doc2json.parse("./invoice.pdf");
+await doxtract.parse("./invoice.pdf");
 
 // Bytes: Buffer, Uint8Array or ArrayBuffer
-await doc2json.parse(await readFile("invoice.pdf"), { filename: "invoice.pdf" });
+await doxtract.parse(await readFile("invoice.pdf"), { filename: "invoice.pdf" });
 
 // A Blob or File, for example from an <input type="file">
-await doc2json.parse(input.files[0]);
+await doxtract.parse(input.files[0]);
 
 // Base64 (a data: URL prefix is removed for you)
-await doc2json.parse({ base64: pdfBase64, filename: "invoice.pdf" });
+await doxtract.parse({ base64: pdfBase64, filename: "invoice.pdf" });
 
 // Plain text, such as an invoice email
-await doc2json.parse({ text: "Invoice INV-1042 from Northwind Supply. Total 1280.50 USD." });
+await doxtract.parse({ text: "Invoice INV-1042 from Northwind Supply. Total 1280.50 USD." });
 ```
 
 - **Formats:** PDF, PNG, JPEG and UTF-8 text files work. The type is read from the file bytes, not the name.
@@ -178,7 +178,7 @@ await doc2json.parse({ text: "Invoice INV-1042 from Northwind Supply. Total 1280
 
 ## Schemas
 
-Without a schema, doc2json chooses the fields. To control the output, pass a [Zod](https://zod.dev) schema, a plain JSON schema, or the name of a schema saved in your workspace.
+Without a schema, Doxtract chooses the fields. To control the output, pass a [Zod](https://zod.dev) schema, a plain JSON schema, or the name of a schema saved in your workspace.
 
 ### Zod schemas
 
@@ -194,18 +194,18 @@ const Invoice = z.object({
   lineItems: z.array(z.object({ description: z.string(), amount: z.number() })),
 });
 
-const result = await doc2json.parse("invoice.pdf", { schema: Invoice });
+const result = await doxtract.parse("invoice.pdf", { schema: Invoice });
 
 result.values.total; // number | null
 result.validation.success; // true when values match Invoice
 ```
 
-- **Use `.nullable()`** on any field that might not be on the document. doc2json returns `null` for a missing value, and `.nullable()` keeps your types honest.
-- **Hints:** `.describe("...")` tells doc2json how to read a field.
+- **Use `.nullable()`** on any field that might not be on the document. Doxtract returns `null` for a missing value, and `.nullable()` keeps your types honest.
+- **Hints:** `.describe("...")` tells Doxtract how to read a field.
 - **Arrays:** an array field is always an array, and `[]` when there are no rows.
 - **Validation:** the result also has `validation`, which is `schema.safeParse(values)`. A mismatch never throws. Check `validation.success`, and read `validation.error.issues` for the details. `values` is always the JSON the API sent, so read `validation.data` if your schema uses transforms or `z.coerce`.
 - **Install:** `zod` is a peer dependency. npm 7 and later install it with the SDK, so there's usually nothing to do.
-- **Mapping:** `z.string()`, `z.number()` (and `.int()`), `z.boolean()` and `z.object()` map to the same doc2json types. `z.iso.date()` becomes `date`, sent back as a `yyyy-mm-dd` string. An enum becomes a `string` with the allowed values added to the hint, and a literal becomes its own type. `.optional()` drops the key from `required`. Shapes with no doc2json type, such as a union of two types, `z.record()` or `z.unknown()`, become `any`. Checks like `.min()` or `.regex()` aren't sent, but `validation` still applies them.
+- **Mapping:** `z.string()`, `z.number()` (and `.int()`), `z.boolean()` and `z.object()` map to the same Doxtract types. `z.iso.date()` becomes `date`, sent back as a `yyyy-mm-dd` string. An enum becomes a `string` with the allowed values added to the hint, and a literal becomes its own type. `.optional()` drops the key from `required`. Shapes with no Doxtract type, such as a union of two types, `z.record()` or `z.unknown()`, become `any`. Checks like `.min()` or `.regex()` aren't sent, but `validation` still applies them.
 - **Dates as `Date`:** `z.date()` also becomes `date`, but the API still sends a string. Use `z.coerce.date()` and read `validation.data` to get a `Date`.
 - **See the result:** `zodToSchema(Invoice)` returns the definition the SDK sends.
 - `zod/mini` schemas work too. Zod 3 schemas don't, so upgrade to `zod@4`.
@@ -222,7 +222,7 @@ type Invoice = {
   lineItems: { description: string; amount: number }[];
 };
 
-const result = await doc2json.parse<Invoice>("invoice.pdf", {
+const result = await doxtract.parse<Invoice>("invoice.pdf", {
   schema: {
     type: "object",
     properties: {
@@ -250,7 +250,7 @@ result.values.total; // number | null
 
 - **Field types:** `string`, `number`, `boolean`, `date`, `array`, `object`, `null` and `any`.
 - **Dates:** a `date` comes back as `yyyy-mm-dd`.
-- **Hints:** add a `description` to any field to tell doc2json how to read it.
+- **Hints:** add a `description` to any field to tell Doxtract how to read it.
 - **Missing values:** a value that isn't on the document is `null`.
 - **Arrays:** an array field is always an array, and `[]` when there are no rows.
 - **No setup:** plain schemas work without `zod` installed.
@@ -260,13 +260,13 @@ result.values.total; // number | null
 Save a schema once and refer to it by name from every app, key and MCP client in the workspace:
 
 ```ts
-await doc2json.schemas.create({ name: "invoice", schema: Invoice }); // Zod or plain JSON
-await doc2json.schemas.list(); // [{ id, name, keyCount, createdAt, updatedAt }]
-await doc2json.schemas.get("invoice"); // also includes .schema, the definition
-await doc2json.schemas.update("invoice", { name: "Invoice v2", schema: Invoice });
+await doxtract.schemas.create({ name: "invoice", schema: Invoice }); // Zod or plain JSON
+await doxtract.schemas.list(); // [{ id, name, keyCount, createdAt, updatedAt }]
+await doxtract.schemas.get("invoice"); // also includes .schema, the definition
+await doxtract.schemas.update("invoice", { name: "Invoice v2", schema: Invoice });
 ```
 
-You can also build schemas visually in the [schema editor](https://doc2json.manoonlabs.com/schemas).
+You can also build schemas visually in the [schema editor](https://doxtract.manoonlabs.com/schemas).
 
 ## Excel and CSV export
 
@@ -275,7 +275,7 @@ Set `export` to get a spreadsheet next to the JSON from the same parse:
 ```ts
 import { writeFile } from "node:fs/promises";
 
-const result = await doc2json.parse("invoice.pdf", { schema: "invoice", export: "xlsx" });
+const result = await doxtract.parse("invoice.pdf", { schema: "invoice", export: "xlsx" });
 
 result.values; // the JSON is always returned
 if (result.export) await writeFile(result.export.filename, result.export.data);
@@ -292,7 +292,7 @@ if (result.export) await writeFile(result.export.filename, result.export.data);
 ## Checking your key
 
 ```ts
-await doc2json.whoami(); // { workspaceId, tokenId, credits_remaining }
+await doxtract.whoami(); // { workspaceId, tokenId, credits_remaining }
 ```
 
 `whoami()` confirms that a key works. It doesn't spend anything.
@@ -302,15 +302,15 @@ await doc2json.whoami(); // { workspaceId, tokenId, credits_remaining }
 A long parse can outlive an HTTP connection. Start it with `jobs.create()`, which returns a job id straight away, then poll it.
 
 ```ts
-const { job_id } = await doc2json.jobs.create("big-report.pdf", { schema: "report" });
+const { job_id } = await doxtract.jobs.create("big-report.pdf", { schema: "report" });
 
 // Poll until it succeeds. Failed jobs throw the typed error for their failure.
-const job = await doc2json.jobs.wait(job_id, { waitTimeout: 5 * 60_000 });
+const job = await doxtract.jobs.wait(job_id, { waitTimeout: 5 * 60_000 });
 job.values;
 job.job_status; // "succeeded"
 
-await doc2json.jobs.get(job_id); // one status check
-await doc2json.jobs.list({ status: "succeeded", pageSize: 20 }); // newest first, no values
+await doxtract.jobs.get(job_id); // one status check
+await doxtract.jobs.list({ status: "succeeded", pageSize: 20 }); // newest first, no values
 ```
 
 `job_status` is `queued`, `running`, `succeeded`, `failed` or `expired`. Results are kept for 24 hours; after that `jobs.get()` throws `ResultExpiredError`. `jobs.wait()` polls every second at first, slows to every 10 seconds, and throws `APITimeoutError` when `waitTimeout` (default 10 minutes) runs out. Pass `signal` to cancel it.
@@ -323,16 +323,16 @@ Every `parse()` and `jobs.create()` call sends an `X-Job-Id` UUID. By default th
 import { randomUUID } from "node:crypto";
 
 const key = randomUUID(); // store it with your own record
-await doc2json.jobs.create("invoice.pdf", { schema: "invoice", idempotencyKey: key });
+await doxtract.jobs.create("invoice.pdf", { schema: "invoice", idempotencyKey: key });
 // Same key, same request, within about 24 hours: returns the original job. Nothing is run or charged again.
-const [existing] = (await doc2json.jobs.list({ clientJobId: key })).jobs;
+const [existing] = (await doxtract.jobs.list({ clientJobId: key })).jobs;
 ```
 
 The same key with a different document or options throws `IdempotencyKeyReusedError` (409). A key you chose is never retried by the SDK after a failed job; use a new UUID to try again.
 
 ## Error handling
 
-Every error extends `Doc2JsonError`, which has these fields:
+Every error extends `DoxtractError`, which has these fields:
 
 - `status`;
 - `code`, a stable string such as `rate_limited`;
@@ -343,21 +343,21 @@ Every error extends `Doc2JsonError`, which has these fields:
 ```ts
 import {
   AuthenticationError,
-  Doc2JsonError,
+  DoxtractError,
   InsufficientCreditsError,
   RateLimitError,
   ValidationError,
-} from "@manoonlabs/doc2json";
+} from "@manoonlabs/doxtract";
 
 try {
-  await doc2json.parse("invoice.pdf", { schema: "invoice" });
+  await doxtract.parse("invoice.pdf", { schema: "invoice" });
 } catch (error) {
   if (error instanceof ValidationError) console.error("Bad request:", error.message);
   else if (error instanceof AuthenticationError) console.error("Check your API key");
   else if (error instanceof InsufficientCreditsError)
     console.error("Out of credits:", error.upgrade);
   else if (error instanceof RateLimitError) console.error(`Retry in ${error.retryAfter}s`);
-  else if (error instanceof Doc2JsonError) console.error(error.code, error.message);
+  else if (error instanceof DoxtractError) console.error(error.code, error.message);
   else throw error;
 }
 ```
@@ -392,13 +392,13 @@ API errors also carry `creditsUsed` and `creditsRemaining` when the server sends
 - **Not retried:** other 4xx errors, a failed job, a failed parse that used your own `idempotencyKey`, and `schemas.create()`, so you never get a duplicate.
 
 ```ts
-const doc2json = new Doc2Json({
+const doxtract = new Doxtract({
   timeout: 120_000, // ms per attempt, the default
   maxRetries: 2, // the default
 });
 
 const controller = new AbortController();
-await doc2json.parse("invoice.pdf", {
+await doxtract.parse("invoice.pdf", {
   signal: controller.signal,
   timeout: 60_000, // override for this call
   maxRetries: 0,
@@ -407,15 +407,15 @@ await doc2json.parse("invoice.pdf", {
 
 ## Options
 
-**Client options** (`new Doc2Json(options)`):
+**Client options** (`new Doxtract(options)`):
 
-| Option       | Default                           | Description                                 |
-| ------------ | --------------------------------- | ------------------------------------------- |
-| `apiKey`     | `process.env.DOC2JSON_API_KEY`    | Your API key                                |
-| `baseUrl`    | `https://doc2json.manoonlabs.com` | API origin                                  |
-| `timeout`    | `120000`                          | Milliseconds per attempt                    |
-| `maxRetries` | `2`                               | Retries on 408, 429, 5xx and network errors |
-| `fetch`      | global `fetch`                    | A custom fetch, for proxies or tests        |
+| Option       | Default                                     | Description                                 |
+| ------------ | ------------------------------------------- | ------------------------------------------- |
+| `apiKey`     | `DOXTRACT_API_KEY`, else `DOC2JSON_API_KEY` | Your API key (`mldxt_…`)                    |
+| `baseUrl`    | `https://doxtract.manoonlabs.com`           | API origin                                  |
+| `timeout`    | `120000`                                    | Milliseconds per attempt                    |
+| `maxRetries` | `2`                                         | Retries on 408, 429, 5xx and network errors |
+| `fetch`      | global `fetch`                              | A custom fetch, for proxies or tests        |
 
 **Per-call options** (`parse(input, options)`):
 
@@ -450,21 +450,21 @@ await doc2json.parse("invoice.pdf", {
 | -------- | ------------------------------------------------------- |
 | Node.js  | 18 and later                                            |
 | Bun      | Yes                                                     |
-| Deno     | Yes, via `npm:@manoonlabs/doc2json`                     |
+| Deno     | Yes, via `npm:@manoonlabs/doxtract`                     |
 | Browsers | Not supported, the API doesn't allow cross-origin calls |
 
-Call doc2json from your server, so your API key stays secret.
+Call Doxtract from your server, so your API key stays secret.
 
 ## MCP and the web app
 
 The SDK covers the REST API. The same parsing is also available in two other places:
 
-- **[MCP server](https://doc2json.manoonlabs.com/docs/mcp):** connect Cursor or any other MCP client to `https://doc2json.manoonlabs.com/mcp`, using your API key as a bearer token.
-- **[Web app](https://doc2json.manoonlabs.com/playground):** this has the Playground, the visual schema editor, API keys and an activity log.
+- **[MCP server](https://doxtract.manoonlabs.com/docs/mcp):** connect Cursor or any other MCP client to `https://doxtract.manoonlabs.com/mcp`, using your API key as a bearer token.
+- **[Web app](https://doxtract.manoonlabs.com/playground):** this has the Playground, the visual schema editor, API keys and an activity log.
 
 ## Pricing
 
-There's a Free plan with 50 credits a month and no card needed. One credit is one page, an image counts as one page, and plain text costs one credit per 3,000 characters. You're only charged when extraction succeeds. See [pricing](https://doc2json.manoonlabs.com/pricing) for the paid plans.
+There's a Free plan with 50 credits a month and no card needed. One credit is one page, an image counts as one page, and plain text costs one credit per 3,000 characters. You're only charged when extraction succeeds. See [pricing](https://doxtract.manoonlabs.com/pricing) for the paid plans.
 
 ## Development
 
@@ -486,7 +486,7 @@ Publishing uses npm **Trusted Publishing** from GitHub Actions. Merging to `main
 
 See `.github/workflows/publish.yml`. Cursor agents follow `.cursor/rules/release.mdc` for the full checklist.
 
-The examples are [`examples/zod.ts`](./examples/zod.ts) and, without Zod, [`examples/basic.ts`](./examples/basic.ts). Changes are listed in [CHANGELOG.md](./CHANGELOG.md), and you can report a security issue through [SECURITY.md](./SECURITY.md). Bugs and feature requests go to [GitHub Issues](https://github.com/manoonlabs/doc2json-js/issues).
+The examples are [`examples/zod.ts`](./examples/zod.ts) and, without Zod, [`examples/basic.ts`](./examples/basic.ts). Changes are listed in [CHANGELOG.md](./CHANGELOG.md), and you can report a security issue through [SECURITY.md](./SECURITY.md). Bugs and feature requests go to [GitHub Issues](https://github.com/manoonlabs/doxtract-js/issues).
 
 ## License
 
