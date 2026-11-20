@@ -1,9 +1,9 @@
 /**
  * Parse an invoice with a Zod schema. `values` is typed from the schema.
  *
- *   DOC2JSON_API_KEY=... npx tsx examples/zod.ts path/to/invoice.pdf
+ *   DOXTRACT_API_KEY=... npx tsx examples/zod.ts path/to/invoice.pdf
  */
-import { Doc2Json } from "@manoonlabs/doc2json";
+import { Doxtract } from "@manoonlabs/doxtract";
 import { z } from "zod";
 
 const Invoice = z.object({
@@ -14,8 +14,8 @@ const Invoice = z.object({
   lineItems: z.array(z.object({ description: z.string(), amount: z.number() })),
 });
 
-const doc2json = new Doc2Json();
-const result = await doc2json.parse(process.argv[2] ?? "invoice.pdf", { schema: Invoice });
+const doxtract = new Doxtract();
+const result = await doxtract.parse(process.argv[2] ?? "invoice.pdf", { schema: Invoice });
 
 const total: number | null = result.values.total;
 console.log(`${result.values.vendor ?? "Unknown vendor"}: ${total ?? "no total"}`);

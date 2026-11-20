@@ -1,4 +1,4 @@
-import { Doc2JsonError } from "./errors";
+import { DoxtractError } from "./errors";
 import { resolveSchemaSlug } from "./schema-slug";
 import type { ParseInput, ParseOptions } from "./types";
 
@@ -32,7 +32,7 @@ function isNodeLike(): boolean {
 
 async function readPath(path: string): Promise<Uint8Array> {
   if (!isNodeLike()) {
-    throw new Doc2JsonError(
+    throw new DoxtractError(
       "A file path can only be read in Node, Bun or Deno. In the browser, pass a File, Blob or bytes.",
       { code: "invalid_input" },
     );
@@ -45,7 +45,7 @@ async function readPath(path: string): Promise<Uint8Array> {
   try {
     return new Uint8Array(await fs.readFile(path));
   } catch (cause) {
-    throw new Doc2JsonError(`Could not read file: ${path}`, { code: "invalid_input", cause });
+    throw new DoxtractError(`Could not read file: ${path}`, { code: "invalid_input", cause });
   }
 }
 
@@ -113,7 +113,7 @@ export async function buildParseBody(
     const hasBase64 = "base64" in input;
     const hasText = "text" in input;
     if (hasBase64 === hasText) {
-      throw new Doc2JsonError("Pass exactly one of { base64 } or { text }.", {
+      throw new DoxtractError("Pass exactly one of { base64 } or { text }.", {
         code: "invalid_input",
       });
     }
@@ -122,18 +122,18 @@ export async function buildParseBody(
     if (filename !== undefined) json.filename = filename;
     if (hasBase64) {
       if (typeof input.base64 !== "string") {
-        throw new Doc2JsonError("base64 must be a string.", { code: "invalid_input" });
+        throw new DoxtractError("base64 must be a string.", { code: "invalid_input" });
       }
       json.file_base64 = input.base64.replace(/^data:[^;,]*;base64,/, "");
     } else {
       if (typeof input.text !== "string") {
-        throw new Doc2JsonError("text must be a string.", { code: "invalid_input" });
+        throw new DoxtractError("text must be a string.", { code: "invalid_input" });
       }
       json.text = input.text;
     }
     return { kind: "json", json };
   }
-  throw new Doc2JsonError(
+  throw new DoxtractError(
     "Unsupported input. Pass a file path, bytes, a Blob or File, { base64 } or { text }.",
     { code: "invalid_input" },
   );

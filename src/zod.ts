@@ -1,4 +1,4 @@
-import { Doc2JsonError } from "./errors";
+import { DoxtractError } from "./errors";
 import type { SchemaDefinition, SchemaNode, SchemaObjectNode } from "./types";
 
 /**
@@ -69,7 +69,7 @@ function loadCore(): Promise<ZodCore> {
     (mod) => mod as unknown as ZodCore,
     (cause) => {
       corePromise = undefined;
-      throw new Doc2JsonError("Could not load zod. Install it with `npm i zod`.", {
+      throw new DoxtractError("Could not load zod. Install it with `npm i zod`.", {
         code: "invalid_schema",
         cause,
       });
@@ -83,7 +83,7 @@ const JSON_SCHEMA_PARAMS = {
   io: "output",
   unrepresentable: "any",
   override(ctx: { zodSchema: unknown; jsonSchema: JsonSchema }) {
-    // A Date has no JSON form. doc2json reads it as a yyyy-mm-dd date.
+    // A Date has no JSON form. doxtract reads it as a yyyy-mm-dd date.
     const def = (ctx.zodSchema as ZodRuntime)._zod?.def;
     if (def?.type === "date") {
       ctx.jsonSchema.type = "string";
@@ -203,17 +203,17 @@ function convertObject(schema: JsonSchema): SchemaObjectNode | undefined {
 }
 
 /**
- * Turn a JSON Schema, such as the output of `z.toJSONSchema()`, into a doc2json
+ * Turn a JSON Schema, such as the output of `z.toJSONSchema()`, into a doxtract
  * schema definition. `$schema`, `additionalProperties`, patterns and bounds are
  * dropped; `integer` becomes `number`; `format: "date"` becomes `date`; a type
- * with `null` keeps the other type, since every doc2json value can be null.
- * Anything with no doc2json form, such as a union of two types, becomes `any`.
+ * with `null` keeps the other type, since every doxtract value can be null.
+ * Anything with no doxtract form, such as a union of two types, becomes `any`.
  */
 export function jsonSchemaToDefinition(schema: unknown): SchemaDefinition {
   const root = isRecord(schema) ? convertObject(schema) : undefined;
   if (!root) {
-    throw new Doc2JsonError(
-      "A Zod schema for doc2json must be a z.object() with at least one key.",
+    throw new DoxtractError(
+      "A Zod schema for doxtract must be a z.object() with at least one key.",
       { code: "invalid_schema" },
     );
   }
@@ -229,8 +229,8 @@ async function toJsonSchema(schema: ZodSchemaLike): Promise<unknown> {
     const core = await loadCore();
     return core.toJSONSchema(schema, JSON_SCHEMA_PARAMS);
   } catch (cause) {
-    if (cause instanceof Doc2JsonError) throw cause;
-    throw new Doc2JsonError(
+    if (cause instanceof DoxtractError) throw cause;
+    throw new DoxtractError(
       `Could not convert the Zod schema: ${cause instanceof Error ? cause.message : String(cause)}`,
       { code: "invalid_schema", cause },
     );
@@ -238,7 +238,7 @@ async function toJsonSchema(schema: ZodSchemaLike): Promise<unknown> {
 }
 
 /**
- * Convert a Zod 4 schema into the doc2json schema definition sent to the API.
+ * Convert a Zod 4 schema into the doxtract schema definition sent to the API.
  *
  * ```ts
  * const definition = await zodToSchema(z.object({ total: z.number().nullable() }));
@@ -247,7 +247,7 @@ async function toJsonSchema(schema: ZodSchemaLike): Promise<unknown> {
  */
 export async function zodToSchema(schema: ZodSchemaLike): Promise<SchemaDefinition> {
   if (!isZodSchema(schema)) {
-    throw new Doc2JsonError(
+    throw new DoxtractError(
       isZod3Schema(schema)
         ? "Zod 3 schemas are not supported. Upgrade to zod 4 (`npm i zod@4`)."
         : "Expected a Zod 4 schema.",

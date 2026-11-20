@@ -3,7 +3,7 @@ import {
   APIConnectionError,
   APITimeoutError,
   APIUserAbortError,
-  Doc2JsonError,
+  DoxtractError,
   errorFromResponse,
   retryAfterSeconds,
 } from "./errors";
@@ -32,16 +32,16 @@ import type {
 import { isJobId, newJobId } from "./uuid";
 import { isZodSchema, resolveSchema, validateWithZod, type ZodSchemaLike } from "./zod";
 
-export const DEFAULT_BASE_URL = "https://doc2json.manoonlabs.com";
+export const DEFAULT_BASE_URL = "https://doxtract.manoonlabs.com";
 /** The server stops a parse after 100 seconds, so wait a little longer. */
 export const DEFAULT_TIMEOUT_MS = 120_000;
 export const DEFAULT_MAX_RETRIES = 2;
 const MAX_RETRY_DELAY_MS = 60_000;
 
-export type Doc2JsonOptions = {
-  /** Your API key. Defaults to the DOC2JSON_API_KEY environment variable. */
+export type DoxtractOptions = {
+  /** Your API key. Defaults to the DOXTRACT_API_KEY environment variable. */
   apiKey?: string;
-  /** Defaults to https://doc2json.manoonlabs.com. */
+  /** Defaults to https://doxtract.manoonlabs.com. */
   baseUrl?: string;
   /** Per-request timeout in milliseconds. Defaults to 120000. */
   timeout?: number;
@@ -75,7 +75,7 @@ function jobIdFor(options: { idempotencyKey?: string }): { key: string; auto: bo
   const key = options.idempotencyKey;
   if (key === undefined) return { key: newJobId(), auto: true };
   if (!isJobId(key)) {
-    throw new Doc2JsonError("idempotencyKey must be a UUID (version 1 through 5).", {
+    throw new DoxtractError("idempotencyKey must be a UUID (version 1 through 5).", {
       code: "invalid_input",
     });
   }
@@ -131,14 +131,14 @@ function toFormData(body: Extract<ParseBody, { kind: "multipart" }>): FormData {
 }
 
 /**
- * The doc2json client.
+ * The doxtract client.
  *
  * ```ts
- * const doc2json = new Doc2Json({ apiKey: process.env.DOC2JSON_API_KEY });
- * const result = await doc2json.parse("invoice.pdf", { schema: "invoice" });
+ * const doxtract = new Doxtract({ apiKey: process.env.DOXTRACT_API_KEY });
+ * const result = await doxtract.parse("invoice.pdf", { schema: "invoice" });
  * ```
  */
-export class Doc2Json {
+export class Doxtract {
   readonly baseUrl: string;
   readonly timeout: number;
   readonly maxRetries: number;
@@ -147,17 +147,17 @@ export class Doc2Json {
   readonly #apiKey: string;
   readonly #fetch: typeof fetch;
 
-  constructor(options: Doc2JsonOptions = {}) {
-    const apiKey = options.apiKey ?? readEnv("DOC2JSON_API_KEY");
+  constructor(options: DoxtractOptions = {}) {
+    const apiKey = options.apiKey ?? readEnv("DOXTRACT_API_KEY") ?? readEnv("DOC2JSON_API_KEY");
     if (!apiKey) {
-      throw new Doc2JsonError(
-        "Missing API key. Pass { apiKey } or set the DOC2JSON_API_KEY environment variable.",
+      throw new DoxtractError(
+        "Missing API key. Pass { apiKey } or set the DOXTRACT_API_KEY environment variable.",
         { code: "missing_api_key" },
       );
     }
     const fetchImpl = options.fetch ?? (globalThis.fetch as typeof fetch | undefined);
     if (typeof fetchImpl !== "function") {
-      throw new Doc2JsonError("No fetch found. Use Node 18 or later, or pass { fetch }.", {
+      throw new DoxtractError("No fetch found. Use Node 18 or later, or pass { fetch }.", {
         code: "missing_fetch",
       });
     }
@@ -324,9 +324,9 @@ export class Doc2Json {
 
 /** Parse jobs: start one without waiting, then fetch, list or wait for it. */
 export class Jobs {
-  readonly #client: Doc2Json;
+  readonly #client: Doxtract;
 
-  constructor(client: Doc2Json) {
+  constructor(client: Doxtract) {
     this.#client = client;
   }
 
@@ -419,9 +419,9 @@ export class Jobs {
 
 /** Saved extraction schemas in this workspace. */
 export class Schemas {
-  readonly #client: Doc2Json;
+  readonly #client: Doxtract;
 
-  constructor(client: Doc2Json) {
+  constructor(client: Doxtract) {
     this.#client = client;
   }
 
@@ -490,3 +490,8 @@ function strip(body: unknown): SchemaRecord {
   const { status: _status, ...record } = body as SchemaRecord & { status?: string };
   return record;
 }
+
+/** @deprecated Use Doxtract. */
+export const Doc2Json = Doxtract;
+/** @deprecated Use DoxtractOptions. */
+export type Doc2JsonOptions = DoxtractOptions;

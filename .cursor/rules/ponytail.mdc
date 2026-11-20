@@ -3,7 +3,7 @@ description: Minimal diff, npm checks before handoff
 alwaysApply: true
 ---
 
-# Ponytail (doc2json-js)
+# Ponytail (doxtract-js)
 
 Prefer the smallest change that fully fixes the task. Reuse patterns in `src/` and match existing test style (Vitest).
 

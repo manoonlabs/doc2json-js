@@ -4,6 +4,8 @@ export {
   DEFAULT_TIMEOUT_MS,
   Doc2Json,
   type Doc2JsonOptions,
+  Doxtract,
+  type DoxtractOptions,
   Jobs,
   Schemas,
 } from "./client";
@@ -15,6 +17,7 @@ export {
   AuthenticationError,
   ConflictError,
   Doc2JsonError,
+  DoxtractError,
   IdempotencyKeyReusedError,
   InsufficientCreditsError,
   InternalServerError,

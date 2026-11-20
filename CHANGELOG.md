@@ -1,6 +1,14 @@
 # Changelog
 
-All notable changes to `@manoonlabs/doc2json` are listed here. This project follows [Semantic Versioning](https://semver.org).
+All notable changes to `@manoonlabs/doxtract` are listed here. This project follows [Semantic Versioning](https://semver.org).
+
+## 1.0.0
+
+First release under the name Doxtract. The jobs API from 0.2.0 is unchanged.
+
+- The package is `@manoonlabs/doxtract`, the client is `Doxtract`, and the default origin is `https://doxtract.manoonlabs.com`.
+- The key is read from `DOXTRACT_API_KEY`, then `DOC2JSON_API_KEY`. `Doc2Json` and `Doc2JsonError` remain as aliases.
+- Saved layouts include `slug`. Citation status includes `ambiguous`.
 
 ## 0.2.0
 

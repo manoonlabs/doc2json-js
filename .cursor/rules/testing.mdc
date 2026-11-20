@@ -24,4 +24,4 @@ Land behavior and the test that proves it in the same diff. A behavior change wi
 
 ## Before claiming API compatibility
 
-If the task is “match doc2json reboot”, grep doc2json for the operation and add a test that would have failed on the old SDK behavior.
+If the task is “match the Doxtract API”, grep the product repo for the operation and add a test that would have failed on the old SDK behavior.

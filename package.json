@@ -1,9 +1,9 @@
 {
-  "name": "@manoonlabs/doc2json",
-  "version": "0.2.0",
-  "description": "Official JavaScript/TypeScript SDK for doc2json: turn PDFs and images into structured JSON.",
+  "name": "@manoonlabs/doxtract",
+  "version": "1.0.0",
+  "description": "Official JavaScript/TypeScript SDK for Doxtract: turn PDFs and images into structured JSON.",
   "keywords": [
-    "doc2json",
+    "doxtract",
     "json-extraction",
     "document-parsing",
     "invoice-parser",
@@ -18,13 +18,13 @@
     "zod",
     "sdk"
   ],
-  "homepage": "https://doc2json.manoonlabs.com",
+  "homepage": "https://doxtract.manoonlabs.com",
   "bugs": {
-    "url": "https://github.com/manoonlabs/doc2json-js/issues"
+    "url": "https://github.com/manoonlabs/doxtract-js/issues"
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/manoonlabs/doc2json-js.git"
+    "url": "git+https://github.com/manoonlabs/doxtract-js.git"
   },
   "license": "MIT",
   "author": "ManoonLabs",
